@@ -45,7 +45,7 @@ class SimpleJSONTest {
                 {
                   "a": [1,2,3,  4, null],
                   "b": null,
-                  "c": "cafebabe\n\t",
+                  "c": "cafebabe\n\t\u0050",
                   "d": {
                     "x": [1,2,3],
                     "y": 86,
@@ -59,7 +59,7 @@ class SimpleJSONTest {
                     listOf(
                             "a" to listOf(1.0, 2.0, 3.0, 4.0, null),
                             "b" to null,
-                            "c" to "cafebabe\n\t",
+                            "c" to "cafebabe\n\t\u0050",
                             "d" to listOf(
                                     "x" to listOf(1.0, 2.0, 3.0),
                                     "y" to 86.0,

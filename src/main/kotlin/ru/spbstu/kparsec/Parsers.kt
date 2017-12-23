@@ -224,6 +224,14 @@ data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, Collection<A>>
 fun <T, A> Parser<T, A>.many() = ManyParser(this).asParser()
 fun <T, A> Parser<T, A>.manyOne() = this + ManyParser(this).asParser()
 
+operator fun <T, A> Parser<T, A>.times(mult: Int): Parser<T, List<A>> {
+    var ret = this.map { listOf(it) }
+    repeat(mult - 1) {
+        ret += this
+    }
+    return ret
+}
+
 infix fun <T, A> Parser<T, A>.joinedBy(sep: Parser<T, Unit>) =
         this + (sep + this).many()
 @JvmName("joinedByUniform")

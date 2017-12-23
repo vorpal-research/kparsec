@@ -28,11 +28,11 @@ object Literals {
                     char('\'').map { '\'' },
                     char('\"').map { '\"' },
                     char('\\').map { '\\' },
-                    -char('x') + (HEX_DIGIT + HEX_DIGIT).map { (a, b) -> (b + 16 * a).toChar() },
-                    -char('u') + (HEX_DIGIT + HEX_DIGIT + HEX_DIGIT + HEX_DIGIT).map { (a,b,c,d) ->
+                    -char('x') + (HEX_DIGIT * 2).map { (a, b) -> (b + 16 * a).toChar() },
+                    -char('u') + (HEX_DIGIT * 4).map { (a,b,c,d) ->
                         (d + 16 * (c + 16 * (b + 16 * a))).toChar()
                     },
-                    (OCT_DIGIT + OCT_DIGIT.orNot() + OCT_DIGIT.orNot()).map {
+                    (OCT_DIGIT + OCT_DIGIT.orNot() * 2).map {
                         (a, b, c) ->
                         var result = a!!
                         b?.let { result *= 16; result += b }
