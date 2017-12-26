@@ -125,11 +125,18 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>bintray-vorpal-research-kotlin-maven</id>
+            <url>http://dl.bintray.com/vorpal-research/kotlin-maven</url>
+        </repository>
+    </repositories>
+
     <distributionManagement>
         <repository>
             <id>bintray-vorpal-research-kotlin-maven</id>
             <name>vorpal-research-kotlin-maven</name>
-            <url>https://api.bintray.com/maven/vorpal-research/kotlin-maven/${artifactId}/;publish=1</url>
+            <url>https://api.bintray.com/maven/vorpal-research/kotlin-maven/${project.artifactId}/;publish=1</url>
         </repository>
     </distributionManagement>
 
