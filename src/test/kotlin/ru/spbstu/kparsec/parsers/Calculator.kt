@@ -18,4 +18,3 @@ object CalculatorParser {
     val expr = sum
     val whole = expr + eof()
 }
-

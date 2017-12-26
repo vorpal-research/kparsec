@@ -93,6 +93,9 @@ data class ZipParser<T, A, B, R>(val lhv: Parser<T, A>, val rhv: Parser<T, B>, v
 }
 
 fun <T, A, B, R> zip(lhv: Parser<T, A>, rhv: Parser<T, B>, f: (A, B) -> R) = ZipParser(lhv, rhv, f).asParser()
+fun <T, A, B, C, R> zip(lhv: Parser<T, A>, mhv: Parser<T, B>, rhv: Parser<T, C>, f: (A, B, C) -> R) =
+        ZipParser(lhv, ZipParser(mhv, rhv){ a, b -> a to b }){ a, pair -> f(a, pair.first, pair.second) }.asParser()
+fun <T, A, B> zip(lhv: Parser<T, A>, rhv: Parser<T, B>) = ZipParser(lhv, rhv, ::Pair).asParser()
 
 data class SeqParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, Collection<A>> {
     constructor(vararg elements: Parser<T, A>): this(elements.asList())
@@ -143,6 +146,7 @@ data class ChoiceParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, A
 }
 
 fun <T, A> oneOf(vararg parsers: Parser<T, A>) = ChoiceParser(*parsers).asParser()
+fun <T, A> oneOf(parsers: List<Parser<T, A>>) = ChoiceParser(parsers).asParser()
 
 data class MapParser<T, A, R>(val lhv: Parser<T, A>, val f: (A) -> R): Parser<T, R> {
     override fun invoke(input: Input<T>): ParseResult<T, R> {
