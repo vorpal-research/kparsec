@@ -1,6 +1,8 @@
 package ru.spbstu.kparsec.parsers
 
 import org.junit.Test
+import ru.spbstu.kparsec.assertFail
+import ru.spbstu.kparsec.assertResult
 import ru.spbstu.kparsec.parse
 import kotlin.test.assertEquals
 

@@ -204,8 +204,8 @@ data class AltParser<T, A, B: A>(val element: Parser<T, B>, val default: A): Par
 infix fun <T, A> Parser<T, A>.orElse(value: A) = AltParser(this, value).asParser()
 fun <T, A> Parser<T, A>.orNot() = AltParser(this, null).asParser()
 
-data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, Collection<A>> {
-    override fun invoke(input: Input<T>): ParseResult<T, Collection<A>> {
+data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, List<A>> {
+    override fun invoke(input: Input<T>): ParseResult<T, List<A>> {
         var curInput = input
         var res = element(curInput)
         val col = mutableListOf<A>()
@@ -220,6 +220,29 @@ data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, Collection<A>>
 
 fun <T, A> Parser<T, A>.many() = ManyParser(this).asParser()
 fun <T, A> Parser<T, A>.manyOne() = this + ManyParser(this).asParser()
+
+data class LimitedManyParser<T, A>(val element: Parser<T, A>, val limit: ClosedRange<Int>): Parser<T, List<A>> {
+    override fun invoke(input: Input<T>): ParseResult<T, List<A>> {
+        var curInput = input
+        var res = element(curInput)
+        val col = mutableListOf<A>()
+        var i = 0
+        while(res is Success && i < limit.endInclusive) {
+            ++i
+            col += res.result
+            curInput = res.rest
+            res = element(curInput)
+        }
+
+        if(i < limit.start) return Failure("$element * $limit", curInput.location)
+        return Success(curInput, col)
+    }
+}
+
+operator fun <T, A> Parser<T, A>.times(value: Int) =
+        LimitedManyParser(this, value..value).asParser()
+operator fun <T, A> Parser<T, A>.times(range: ClosedRange<Int>) =
+        LimitedManyParser(this, range).asParser()
 
 infix fun <T, A> Parser<T, A>.joinedBy(sep: Parser<T, Unit>) =
         this + (sep + this).many()

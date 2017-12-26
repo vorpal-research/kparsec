@@ -1,8 +1,4 @@
-package ru.spbstu.kparsec.parsers
-
-import ru.spbstu.kparsec.Failure
-import ru.spbstu.kparsec.ParseResult
-import ru.spbstu.kparsec.Success
+package ru.spbstu.kparsec
 
 fun<T, R> ParseResult<T, R>.assertResult(): R {
     require(this is Success)

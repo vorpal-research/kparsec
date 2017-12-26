@@ -9,13 +9,24 @@ object Literals {
     fun lexeme(inner: String) = lexeme(constant(inner))
     fun lexeme(inner: Char) = lexeme(char(inner))
 
-    val FLOAT: Parser<Char, Double> = regex("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?".toRegex()).map { it.toDouble() } named "Float"
-    val DECIMAL: Parser<Char, Long> = regex("[0-9]+".toRegex()).map { it.toLong() } named "Decimal"
-    val OCTAL: Parser<Char, Long> = regex("[0-7]+".toRegex()).map { it.toLong(8) } named "Octal"
-    val HEXADECIMAL: Parser<Char, Long> = regex("[0-9a-fA-F]+".toRegex()).map { it.toLong(16) } named "Hexadecimal"
-    val BOOLEAN: Parser<Char, Boolean> = constant("true").map { true } or constant("false").map { false } named "Boolean"
+    val FLOAT: Parser<Char, Double> =
+            regex("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?".toRegex()).map { it.toDouble() } named "Float"
+    val DECIMAL: Parser<Char, Long> =
+            regex("[0-9]+".toRegex()).map { it.toLong() } named "Decimal"
+    val OCTAL: Parser<Char, Long> =
+            regex("[0-7]+".toRegex()).map { it.toLong(8) } named "Octal"
+    val HEXADECIMAL: Parser<Char, Long> =
+            regex("[0-9a-fA-F]+".toRegex()).map { it.toLong(16) } named "Hexadecimal"
+    val BOOLEAN: Parser<Char, Boolean> =
+            constant("true").map { true } or constant("false").map { false } named "Boolean"
 
-    val CINTEGER: Parser<Char, Long> = (-char('0') + ((-char('x') + HEXADECIMAL) or OCTAL)) or DECIMAL named "C Integer"
+    private val CDECIMAL: Parser<Char, Long> =
+            regex("[1-9][0-9]*".toRegex()).map { it.toLong() } named "Decimal"
+    private val COCTAL: Parser<Char, Long> =
+            regex("0[0-7]*".toRegex()).map { it.toLong(8) } named "Octal"
+    private val CHEXADECIMAL: Parser<Char, Long> =
+            regex("0[xX][0-9a-fA-F]+".toRegex()).map { it.drop(2).toLong(16) } named "Hexadecimal"
+    val CINTEGER: Parser<Char, Long> = CHEXADECIMAL or COCTAL or CDECIMAL
 
     val OCT_DIGIT: Parser<Char, Int> = range('0'..'7').map { it - '0' }
     val DEC_DIGIT: Parser<Char, Int> = range('0'..'9').map { it - '0' }
@@ -30,15 +41,15 @@ object Literals {
                     char('\'').map { '\'' },
                     char('\"').map { '\"' },
                     char('\\').map { '\\' },
-                    -char('x') + (HEX_DIGIT + HEX_DIGIT).map { (a, b) -> (b + 16 * a).toChar() },
-                    -char('u') + (HEX_DIGIT + HEX_DIGIT + HEX_DIGIT + HEX_DIGIT).map { (a,b,c,d) ->
+                    -char('x') + (HEX_DIGIT * 2).map { (a, b) -> (b + 16 * a).toChar() },
+                    -char('u') + (HEX_DIGIT * 4).map { (a,b,c,d) ->
                         (d + 16 * (c + 16 * (b + 16 * a))).toChar()
                     },
-                    (OCT_DIGIT + OCT_DIGIT.orNot() + OCT_DIGIT.orNot()).map {
+                    (OCT_DIGIT * (1..3)).map {
                         (a, b, c) ->
-                        var result = a!!
-                        b?.let { result *= 16; result += b }
-                        c?.let { result *= 16; result += c }
+                        var result = a
+                        result *= 16; result += b
+                        result *= 16; result += c
                         result.toChar()
                     }
             )
