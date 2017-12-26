@@ -45,16 +45,18 @@ object Literals {
                     -char('u') + (HEX_DIGIT * 4).map { (a,b,c,d) ->
                         (d + 16 * (c + 16 * (b + 16 * a))).toChar()
                     },
-                    (OCT_DIGIT * (1..3)).map {
-                        (a, b, c) ->
+                    (OCT_DIGIT * (1..3)).map { lst ->
+                        val a = lst.get(0)
+                        val b = lst.getOrNull(1)
+                        val c = lst.getOrNull(2)
                         var result = a
-                        result *= 16; result += b
-                        result *= 16; result += c
+                        b?.let { result *= 8; result += b }
+                        c?.let { result *= 8; result += c }
                         result.toChar()
                     }
             )
 
-    val CSTRING: Parser<Char, String> =
+    val JSTRING: Parser<Char, String> =
             -char('"') +
                     ( char{ it != '\"' && it != '\\' } or escaped ).many().map { it.joinToString("") } +
                     -char('"') named "C String"
