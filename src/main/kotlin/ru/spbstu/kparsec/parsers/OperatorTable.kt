@@ -54,7 +54,7 @@ class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
                 Assoc.RIGHT -> zip(zip(currentElement, op).many(), currentElement){ rest, last ->
                     rest.foldRight(last){ (l, op), r -> op(l, r) }
                 }
-                Assoc.NONE -> TODO()
+                Assoc.NONE -> zip(currentElement, op, currentElement) { l, f, r -> f(l, r) }
             }
         }
         return currentElement
