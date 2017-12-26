@@ -1,14 +1,8 @@
 package ru.spbstu.kparsec.parsers
 
 import org.junit.Test
-import ru.spbstu.kparsec.Failure
-import ru.spbstu.kparsec.ParseResult
-import ru.spbstu.kparsec.Success
 import ru.spbstu.kparsec.parse
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-
-
 
 class CalculatorTest {
     @Test

@@ -1,7 +1,7 @@
 package ru.spbstu.kparsec.parsers
 
 import ru.spbstu.kparsec.*
-import ru.spbstu.kparsec.Literals.lexeme
+import ru.spbstu.kparsec.parsers.Literals.lexeme
 
 object SimpleJSONParser {
     val string = Literals.CSTRING
