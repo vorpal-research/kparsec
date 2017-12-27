@@ -5,17 +5,30 @@ import ru.spbstu.kparsec.Parser
 import ru.spbstu.kparsec.map
 
 const val DEFAULT_PRIORITY = 7
-enum class Assoc { LEFT, RIGHT, NONE }
-typealias Mapping<Base, Op> = (Base, Op, Base) -> Base
-data class SortedKey(val priority: Int, val assoc: Assoc): Comparable<SortedKey> {
-    override fun compareTo(other: SortedKey): Int {
-        val priComp = priority.compareTo(other.priority)
-        if(priComp != 0) return priComp
-        return assoc.compareTo(other.assoc)
+interface Assoc {
+    val index: Int
+    companion object {
+        val LEFT = BinaryAssoc.LEFT
+        val RIGHT = BinaryAssoc.RIGHT
+        val NONE = BinaryAssoc.NONE
+        val PREFIX = UnaryAssoc.PREFIX
+        val POSTFIX = UnaryAssoc.POSTFIX
     }
 }
 
-data class Entry<T, E, K>(
+enum class UnaryAssoc(override val index: Int): Assoc { PREFIX(4), POSTFIX(3) }
+enum class BinaryAssoc(override val index: Int): Assoc { LEFT(2), RIGHT(1), NONE(0) }
+
+private typealias Mapping<Base, Op> = (Base, Op, Base) -> Base
+private data class SortedKey(val priority: Int, val assoc: Assoc): Comparable<SortedKey> {
+    override fun compareTo(other: SortedKey): Int {
+        val priComp = priority.compareTo(other.priority)
+        if(priComp != 0) return priComp
+        return assoc.index.compareTo(other.assoc.index)
+    }
+}
+
+private data class Entry<T, E, K>(
         val op: Parser<T, K>,
         val mapping: Mapping<E, K>
 ): Parser<T, (E, E) -> E> {
@@ -55,6 +68,10 @@ class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
                     rest.foldRight(last){ (l, op), r -> op(l, r) }
                 }
                 Assoc.NONE -> zip(currentElement, op, currentElement) { l, f, r -> f(l, r) }
+
+                Assoc.PREFIX -> zip(op, currentElement) { f, r -> f(r, r) }
+                Assoc.POSTFIX -> zip(currentElement, op) { r, f -> f(r, r) }
+                else -> /* =( */ error("Unknown associativity type: ${key.assoc}")
             }
         }
         return currentElement
