@@ -55,14 +55,14 @@ class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
     }
 
     operator fun<K> Parser<T, K>.invoke(priority: Int = DEFAULT_PRIORITY,
-                               assoc: BinaryAssoc = Assoc.LEFT,
-                               mapping: (Base, K, Base) -> Base) {
+                                        assoc: BinaryAssoc = Assoc.LEFT,
+                                        mapping: (Base, K, Base) -> Base) {
         map.getOrPut(SortedKey(priority, assoc)){ mutableListOf() } += Entry( this, mapping)
     }
 
     operator fun<K> Parser<T, K>.invoke(priority: Int = DEFAULT_PRIORITY,
-                               assoc: BinaryAssoc = Assoc.LEFT,
-                               mapping: (Base, Base) -> Base) {
+                                        assoc: BinaryAssoc = Assoc.LEFT,
+                                        mapping: (Base, Base) -> Base) {
         map.getOrPut(SortedKey(priority, assoc)){ mutableListOf() } += Entry( this){ a, _, b -> mapping(a, b) }
     }
 
