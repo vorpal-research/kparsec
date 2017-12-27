@@ -16,8 +16,8 @@ interface Assoc {
     }
 }
 
-enum class UnaryAssoc(override val index: Int): Assoc { PREFIX(4), POSTFIX(3) }
-enum class BinaryAssoc(override val index: Int): Assoc { LEFT(2), RIGHT(1), NONE(0) }
+enum class BinaryAssoc(override val index: Int): Assoc { LEFT(0), RIGHT(1), NONE(2) }
+enum class UnaryAssoc(override val index: Int): Assoc { PREFIX(3), POSTFIX(4) }
 
 private typealias Mapping<Base, Op> = (Base, Op, Base) -> Base
 private data class SortedKey(val priority: Int, val assoc: Assoc): Comparable<SortedKey> {
@@ -43,13 +43,25 @@ class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
             zip(element, this, element) { l, f, r -> f(l, r) }
 
     operator fun<K> Parser<T, K>.invoke(priority: Int = DEFAULT_PRIORITY,
-                               assoc: Assoc = Assoc.LEFT,
+                                        assoc: UnaryAssoc,
+                                        mapping: (Base) -> Base) {
+        map.getOrPut(SortedKey(priority, assoc)){ mutableListOf() } += Entry( this){ a, _, _ -> mapping(a) }
+    }
+
+    operator fun<K> Parser<T, K>.invoke(priority: Int = DEFAULT_PRIORITY,
+                                        assoc: UnaryAssoc,
+                                        mapping: (Base, K) -> Base) {
+        map.getOrPut(SortedKey(priority, assoc)){ mutableListOf() } += Entry( this){ a, op, _ -> mapping(a, op) }
+    }
+
+    operator fun<K> Parser<T, K>.invoke(priority: Int = DEFAULT_PRIORITY,
+                               assoc: BinaryAssoc = Assoc.LEFT,
                                mapping: (Base, K, Base) -> Base) {
         map.getOrPut(SortedKey(priority, assoc)){ mutableListOf() } += Entry( this, mapping)
     }
 
     operator fun<K> Parser<T, K>.invoke(priority: Int = DEFAULT_PRIORITY,
-                               assoc: Assoc = Assoc.LEFT,
+                               assoc: BinaryAssoc = Assoc.LEFT,
                                mapping: (Base, Base) -> Base) {
         map.getOrPut(SortedKey(priority, assoc)){ mutableListOf() } += Entry( this){ a, _, b -> mapping(a, b) }
     }
@@ -67,10 +79,17 @@ class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
                 Assoc.RIGHT -> zip(zip(currentElement, op).many(), currentElement){ rest, last ->
                     rest.foldRight(last){ (l, op), r -> op(l, r) }
                 }
-                Assoc.NONE -> zip(currentElement, op, currentElement) { l, f, r -> f(l, r) }
+                Assoc.NONE -> zip(currentElement, zip(op, currentElement).orNot()) { l, pair ->
+                    if(pair == null) l
+                    else pair.first(l, pair.second)
+                }
 
-                Assoc.PREFIX -> zip(op, currentElement) { f, r -> f(r, r) }
-                Assoc.POSTFIX -> zip(currentElement, op) { r, f -> f(r, r) }
+                Assoc.PREFIX -> zip(op.many(), currentElement) { f, r ->
+                    f.foldRight(r) { op, rhv -> op(rhv, rhv) }
+                }
+                Assoc.POSTFIX -> zip(currentElement, op.many()) { r, f ->
+                    f.fold(r) { rhv, op -> op(rhv, rhv) }
+                }
                 else -> /* =( */ error("Unknown associativity type: ${key.assoc}")
             }
         }

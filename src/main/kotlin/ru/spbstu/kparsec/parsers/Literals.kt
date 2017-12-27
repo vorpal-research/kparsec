@@ -59,5 +59,5 @@ object Literals {
     val JSTRING: Parser<Char, String> =
             -char('"') +
                     ( char{ it != '\"' && it != '\\' } or escaped ).many().map { it.joinToString("") } +
-                    -char('"') named "C String"
+                    -char('"') named "J String"
 }
