@@ -71,3 +71,13 @@ data class StringInput(val string: String, val offset: Int = 0): Input<Char> {
 
     override fun sourceAsString() = string.drop(offset)
 }
+
+data class ListInput<T>(val data: List<T>, val offset: Int = 0): Input<T> {
+    override val source: List<T> get() = data.subList(offset)
+    override val location: Location = Location("<string>", 0, offset)
+
+    override fun next(): Input<T> = copy(offset = offset + 1)
+    override fun drop(n: Int) = copy(offset = offset + n)
+
+    override fun sourceAsString() = source.joinToString("")
+}
