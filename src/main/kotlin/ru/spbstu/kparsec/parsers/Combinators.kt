@@ -73,8 +73,9 @@ data class ChoiceParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, A
     }
 }
 
+/* it is named "oneOfCollection" not to clash with oneOf for tokens */
+fun <T, A> oneOfCollection(parsers: Iterable<Parser<T, A>>) = ChoiceParser(parsers).asParser()
 fun <T, A> oneOf(vararg parsers: Parser<T, A>) = ChoiceParser(*parsers).asParser()
-fun <T, A> oneOf(parsers: List<Parser<T, A>>) = ChoiceParser(parsers).asParser()
 
 data class MapParser<T, A, R>(val lhv: Parser<T, A>, val f: (A) -> R): Parser<T, R> {
     override fun invoke(input: Input<T>): ParseResult<T, R> {
@@ -88,23 +89,18 @@ data class MapParser<T, A, R>(val lhv: Parser<T, A>, val f: (A) -> R): Parser<T,
 
 fun <T, A, R> Parser<T, A>.map(f: (A) -> R) = MapParser(this, f).asParser()
 
-data class OrParser<T, A>(val lhv: Parser<T, A>, val rhv: Parser<T, A>): Parser<T, A> {
+data class FilterParser<T, A>(val lhv: Parser<T, A>, val p: (A) -> Boolean): Parser<T, A> {
     override fun invoke(input: Input<T>): ParseResult<T, A> {
-        val lr = lhv(input)
-        return when(lr) {
-            is Failure -> {
-                val rr = rhv(input)
-                when(rr) {
-                    is Success -> Success(rr.rest, rr.result)
-                    is Failure -> Failure(rr.expected, rr.location)
-                }
-            }
-            else -> lr
+        val r = lhv(input)
+        return when {
+            r is Success && p(r.result) -> r
+            r is Failure -> r
+            else -> Failure("filter", input.location)
         }
     }
 }
 
-infix fun <T, A> Parser<T, A>.or(that: Parser<T, A>) = OrParser(this, that).asParser()
+fun <T, A> Parser<T, A>.filter(p: (A) -> Boolean) = FilterParser(this, p).asParser()
 
 data class RecursiveParser<T, A>(val f: (Parser<T, A>) -> Parser<T, A>): Parser<T, A> {
     val lz by kotlin.lazy{ f(this) }
@@ -171,9 +167,9 @@ data class LimitedManyParser<T, A>(val element: Parser<T, A>, val limit: ClosedR
     }
 }
 
-operator fun <T, A> Parser<T, A>.times(value: Int) =
+fun <T, A> Parser<T, A>.repeated(value: Int) =
         LimitedManyParser(this, value..value).asParser()
-operator fun <T, A> Parser<T, A>.times(range: ClosedRange<Int>) =
+fun <T, A> Parser<T, A>.repeated(range: ClosedRange<Int>) =
         LimitedManyParser(this, range).asParser()
 
 infix fun <T, A> Parser<T, A>.joinedBy(sep: Parser<T, Unit>) =
@@ -192,5 +188,5 @@ data class ChainParser<T, A, B>(val base: Parser<T, A>, val next: (A) -> Parser<
     }
 }
 
-fun <T, A, B> Parser<T, A>.chain(next: (A) -> Parser<T, B>) = ChainParser(this, next).asParser()
+infix fun <T, A, B> Parser<T, A>.chain(next: (A) -> Parser<T, B>) = ChainParser(this, next).asParser()
 fun <T, A> Parser<T, Parser<T, A>>.flatten() = chain { it }

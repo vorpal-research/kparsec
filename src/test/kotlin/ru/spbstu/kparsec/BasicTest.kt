@@ -88,4 +88,13 @@ class BasicTest {
         assertEquals(4, oneOf(0, 1, 2, 3, 4).parse(listOf(4)).assertResult())
         oneOf(0, 1, 2, 3, 4).parse(listOf(9)).assertFail()
     }
+
+    @Test
+    fun `eof sanity check`() {
+        val base = char { it.isLowerCase() }
+
+        assertEquals('a', base.parse("abc").assertResult())
+        assertEquals('a', (base + eof()).parse("a").assertResult())
+        (base + eof()).parse("abc").assertFail()
+    }
 }

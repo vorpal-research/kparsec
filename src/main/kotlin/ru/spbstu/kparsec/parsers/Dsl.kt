@@ -26,4 +26,11 @@ operator fun <T, A> Parser<T, Unit>.plus(that: Parser<T, Collection<A>>) =
 operator fun <T, A> Parser<T, Collection<A>>.plus(that: Parser<T, Unit>) =
         zip(this, that) { a, _ -> a }
 
+infix fun <T, A> Parser<T, A>.or(that: Parser<T, A>) = oneOf(this, that).asParser()
+
 operator fun <T, A> Parser<T, A>.unaryMinus() = map {}
+
+operator fun <T, A> Parser<T, A>.times(value: Int) =
+        LimitedManyParser(this, value..value).asParser()
+operator fun <T, A> Parser<T, A>.times(range: ClosedRange<Int>) =
+        LimitedManyParser(this, range).asParser()

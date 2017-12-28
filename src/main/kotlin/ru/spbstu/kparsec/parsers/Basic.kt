@@ -74,8 +74,8 @@ fun<T> token(ch: T) = TokenParser<T>("'$ch'") { it == ch }.asParser()
 fun<T> token(predicate: (T) -> Boolean) = TokenParser("#predicate#", predicate).asParser()
 fun<T> anyToken(): Parser<T, T> = TokenParser<T>("any token"){ true }.asParser()
 fun<T: Comparable<T>> range(range: ClosedRange<T>) = TokenParser<T>("$range"){ it in range }.asParser()
-fun<T> oneOf(ch: Collection<T>) = TokenParser<T>("oneOf(${ch.joinToString()})") { it in ch }
-fun<T> oneOf(vararg ch: T) = oneOf(ch.asList())
+fun<T> oneOf(ch: Collection<T>) = TokenParser<T>("oneOf(${ch.joinToString()})") { it in ch }.asParser()
+fun<T> oneOf(vararg ch: T) = oneOf(ch.asList()).asParser()
 
 class EofParser<T>: Parser<T, Unit> {
     override fun invoke(input: Input<T>) = when {

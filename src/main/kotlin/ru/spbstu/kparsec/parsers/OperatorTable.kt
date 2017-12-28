@@ -71,7 +71,8 @@ class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
 
         val sortedKeys = map.keys.sortedByDescending{ it }
         for(key in sortedKeys) {
-            val op = oneOf(map[key] as List<Parser<T, (Base, Base) -> Base>>)
+            val op =
+                    oneOfCollection(map[key] as Iterable<Parser<T, (Base, Base) -> Base>>)
             currentElement = when(key.assoc) {
                 Assoc.LEFT -> zip(currentElement, zip(op, currentElement).many()){ first, rest ->
                     rest.fold(first){ l, (op, r) -> op(l, r) }
