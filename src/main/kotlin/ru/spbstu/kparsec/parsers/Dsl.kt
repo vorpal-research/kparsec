@@ -20,10 +20,10 @@ operator fun <T, A> Parser<T, A>.plus(that: Parser<T, Collection<A>>) =
 operator fun <T, A> Parser<T, Collection<A>>.plus(that: Parser<T, Collection<A>>) =
         zip(this, that) { a, b -> a + b }
 @JvmName("plus<Unit, Collection>")
-operator fun <T, A> Parser<T, Unit>.plus(that: Parser<T, Collection<A>>) =
+operator fun <T, A, C: Collection<A>> Parser<T, Unit>.plus(that: Parser<T, C>) =
         zip(this, that) { _, b -> b }
 @JvmName("plus<Collection, Unit>")
-operator fun <T, A> Parser<T, Collection<A>>.plus(that: Parser<T, Unit>) =
+operator fun <T, A, C: Collection<A>> Parser<T, C>.plus(that: Parser<T, Unit>) =
         zip(this, that) { a, _ -> a }
 
 infix fun <T, A> Parser<T, A>.or(that: Parser<T, A>) = oneOf(this, that).asParser()

@@ -61,7 +61,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `sequence(iterable) sanity check`() {
+    fun `sequence of iterable sanity check`() {
         /* empty sequence is essentially success */
         assertEquals(listOf(), sequence<Char, Int>(listOf()).parse("anything").assertResult())
         assertEquals(listOf(2L, 'a', 5.0), sequence(listOf(CINTEGER, anyChar(), FLOAT)).parse("2a5").assertResult())
@@ -86,7 +86,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `oneOf(iterable) sanity check`() {
+    fun `oneOf of iterable sanity check`() {
         /* empty oneOf is essentially fail */
         oneOfCollection<Char, Int>(listOf()).parse("aaa").assertFail()
 
@@ -98,7 +98,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `parser map() sanity check`() {
+    fun `parser map sanity check`() {
         val dig = char { it.isDigit() }.map { it - '0' }
 
         assertEquals(9, dig.parse("9").assertResult())
@@ -106,7 +106,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `parser filter() sanity check`() {
+    fun `parser filter sanity check`() {
         val dig = char { it.isDigit() }.map { it - '0' }.filter { it > 4 }
 
         assertEquals(9, dig.parse("9").assertResult())
@@ -162,7 +162,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `many() sanity check`() {
+    fun `many sanity check`() {
         val digits = char { it.isDigit() }.many()
 
         assertEquals(listOf(), digits.parse("azzazaaa").assertResult())
@@ -173,7 +173,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `manyOne() sanity check`() {
+    fun `manyOne sanity check`() {
         val digits = char { it.isDigit() }.manyOne()
 
         digits.parse("azzazaaa").assertFail()
@@ -184,7 +184,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `repeated() sanity check`() {
+    fun `repeated sanity check`() {
         val digits = char { it.isDigit() }.repeated(5)
 
         digits.parse("azzazaaa").assertFail()
@@ -198,7 +198,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `repeated(range) sanity check`() {
+    fun `repeated of range sanity check`() {
         val digits = char { it.isDigit() }.repeated(3..5)
 
         digits.parse("azzazaaa").assertFail()
@@ -214,7 +214,7 @@ class CombinatorTest {
     }
 
     @Test
-    fun `chain() sanity check`() {
+    fun `chain sanity check`() {
         val twoEqualSymbols = anyChar() chain { char(it) }
 
         twoEqualSymbols.parse("an").assertFail()
@@ -227,5 +227,4 @@ class CombinatorTest {
         assertEquals("abcdef", sized.parse("6abcdef").assertResult().joinToString(""))
         assertEquals("abcdef", sized.parse("6abcdefkj").assertResult().joinToString(""))
     }
-
 }
