@@ -30,7 +30,8 @@ object Literals {
 
     val OCT_DIGIT: Parser<Char, Int> = range('0'..'7').map { it - '0' }
     val DEC_DIGIT: Parser<Char, Int> = range('0'..'9').map { it - '0' }
-    val HEX_DIGIT = DEC_DIGIT or range('A'..'F').map { it - 'A' + 10 } or range('a'..'f').map { it - 'a' + 10 }
+    val HEX_DIGIT: Parser<Char, Int> =
+            DEC_DIGIT or range('A'..'F').map { it - 'A' + 10 } or range('a'..'f').map { it - 'a' + 10 }
     private val escaped = -char('\\') +
             oneOf(
                     char('b').map { '\u0008' },
