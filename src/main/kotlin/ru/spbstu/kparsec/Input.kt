@@ -16,11 +16,11 @@ data class StringAsList(val inner: CharSequence): AbstractList<Char>(), CharSequ
 fun CharSequence.asCharList(): List<Char> = StringAsList(this)
 
 data class ListAsCharseq(val inner: List<Char>): List<Char> by inner, CharSequence {
-    override val length = size
+    override val length: Int = size
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
             ListAsCharseq(inner.subList(startIndex, endIndex))
 
-    override fun toString() = inner.joinToString("")
+    override fun toString(): String = inner.joinToString("")
 }
 
 fun List<Char>.asCharSequence(): CharSequence = ListAsCharseq(this)
@@ -57,19 +57,19 @@ interface Input<out T> {
         return res
     }
 
-    fun sourceAsString() = source.joinToString("")
+    fun sourceAsString(): String = source.joinToString("")
 }
 
-fun<T> List<T>.subList(from: Int) = subList(from, size)
+fun<T> List<T>.subList(from: Int): List<T> = subList(from, size)
 
 data class StringInput(val string: String, val offset: Int = 0): Input<Char> {
     override val source: List<Char> get() = string.asCharList().subList(offset)
     override val location: Location = Location("<string>", 0, offset)
 
     override fun next(): Input<Char> = copy(offset = offset + 1)
-    override fun drop(n: Int) = copy(offset = offset + n)
+    override fun drop(n: Int): StringInput = copy(offset = offset + n)
 
-    override fun sourceAsString() = string.drop(offset)
+    override fun sourceAsString(): String = string.drop(offset)
 }
 
 data class ListInput<T>(val data: List<T>, val offset: Int = 0): Input<T> {
@@ -77,7 +77,7 @@ data class ListInput<T>(val data: List<T>, val offset: Int = 0): Input<T> {
     override val location: Location = Location("<string>", 0, offset)
 
     override fun next(): Input<T> = copy(offset = offset + 1)
-    override fun drop(n: Int) = copy(offset = offset + n)
+    override fun drop(n: Int): ListInput<T> = copy(offset = offset + n)
 
-    override fun sourceAsString() = source.joinToString("")
+    override fun sourceAsString(): String = source.joinToString("")
 }

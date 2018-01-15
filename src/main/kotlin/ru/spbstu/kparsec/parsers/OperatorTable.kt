@@ -1,6 +1,7 @@
 package ru.spbstu.kparsec.parsers
 
 import ru.spbstu.kparsec.Input
+import ru.spbstu.kparsec.ParseResult
 import ru.spbstu.kparsec.Parser
 import ru.spbstu.kparsec.map
 
@@ -32,14 +33,14 @@ private data class Entry<T, E, K>(
         val op: Parser<T, K>,
         val mapping: Mapping<E, K>
 ): Parser<T, (E, E) -> E> {
-    override fun invoke(input: Input<T>) =
+    override fun invoke(input: Input<T>): ParseResult<T, (E, E) -> E> =
             op(input).map { op -> { a: E, b: E -> mapping(a, op, b) }}
 }
 
 class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
-    private val map = mutableMapOf<SortedKey, MutableList<Entry<T, Base, *>>>()
+    private val map: MutableMap<SortedKey, MutableList<Entry<T, Base, *>>> = mutableMapOf()
 
-    private fun Parser<T, (Base, Base) -> Base>.apply(element: Parser<T, Base>) =
+    private fun Parser<T, (Base, Base) -> Base>.apply(element: Parser<T, Base>): Parser<T, Base> =
             zip(element, this, element) { l, f, r -> f(l, r) }
 
     operator fun<K> Parser<T, K>.invoke(priority: Int = DEFAULT_PRIORITY,
@@ -67,7 +68,7 @@ class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
     }
 
     internal fun build(): Parser<T, Base> {
-        var currentElement = base
+        var currentElement: Parser<T, Base> = base
 
         val sortedKeys = map.keys.sortedByDescending{ it }
         for(key in sortedKeys) {

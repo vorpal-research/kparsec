@@ -1,12 +1,14 @@
 package ru.spbstu.kparsec.parsers
 
+import ru.spbstu.kparsec.Parser
+
 interface StringsAsParsers {
-    operator fun String.unaryPlus() = Literals.lexeme(this)
-    operator fun Char.unaryPlus() = Literals.lexeme(this)
-    operator fun CharRange.unaryPlus() = Literals.lexeme(range(this))
-    operator fun String.unaryMinus() = -+this
-    operator fun Char.unaryMinus() = -+this
-    operator fun CharRange.unaryMinus() = -+this
+    operator fun String.unaryPlus(): Parser<Char, String> = Literals.lexeme(this)
+    operator fun Char.unaryPlus(): Parser<Char, Char> = Literals.lexeme(this)
+    operator fun CharRange.unaryPlus(): Parser<Char, Char> = Literals.lexeme(range(this))
+    operator fun String.unaryMinus(): Parser<Char, Unit> = -+this
+    operator fun Char.unaryMinus(): Parser<Char, Unit> = -+this
+    operator fun CharRange.unaryMinus(): Parser<Char, Unit> = -+this
 }
 
-fun StringsAsParsers() = object : StringsAsParsers{}
+fun StringsAsParsers(): StringsAsParsers = object : StringsAsParsers{}

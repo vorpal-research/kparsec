@@ -3,11 +3,11 @@ package ru.spbstu.kparsec.parsers
 import ru.spbstu.kparsec.*
 
 object Literals {
-    val SPACES = regex("\\s*".toRegex()).asParser()
+    val SPACES: Parser<Char, String> = regex("\\s*".toRegex()).asParser()
 
-    fun<T> lexeme(inner: Parser<Char, T>) = -SPACES + inner + -SPACES
-    fun lexeme(inner: String) = lexeme(constant(inner))
-    fun lexeme(inner: Char) = lexeme(char(inner))
+    fun<T> lexeme(inner: Parser<Char, T>): Parser<Char, T> = -SPACES + inner + -SPACES
+    fun lexeme(inner: String): Parser<Char, String> = lexeme(constant(inner))
+    fun lexeme(inner: Char): Parser<Char, Char> = lexeme(char(inner))
 
     val FLOAT: Parser<Char, Double> =
             regex("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?".toRegex()).map { it.toDouble() } named "Float"
@@ -32,7 +32,7 @@ object Literals {
     val DEC_DIGIT: Parser<Char, Int> = range('0'..'9').map { it - '0' }
     val HEX_DIGIT: Parser<Char, Int> =
             DEC_DIGIT or range('A'..'F').map { it - 'A' + 10 } or range('a'..'f').map { it - 'a' + 10 }
-    private val escaped = -char('\\') +
+    private val escaped: Parser<Char, Char> = -char('\\') +
             oneOf(
                     char('b').map { '\u0008' },
                     char('f').map { '\u000C' },
