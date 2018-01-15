@@ -3,21 +3,44 @@ package ru.spbstu.kparsec.parsers
 import kotlinx.Warnings
 import ru.spbstu.kparsec.*
 
+/**
+ * Internal stuff
+ */
 @Suppress(Warnings.NOTHING_TO_INLINE)
 internal inline fun<T, R> Parser<T, R>.asParser() = this
 
+/**
+ * [Parser] that parses nothing, always succeeds and returns [result]
+ * @see success
+ */
 data class SuccessParser<T, R>(val result: R): Parser<T, R> {
     override fun invoke(input: Input<T>): ParseResult<T, R> = Success(input, result)
 }
 
+/**
+ * [Parser] that parses nothing, always succeeds and returns [result]
+ * @see SuccessParser
+ */
 fun<T, R> success(result: R): Parser<T, R> = SuccessParser<T, R>(result).asParser()
 
+/**
+ * [Parser] that parses nothing and always fails with [error]
+ * @see fail
+ */
 data class ErrorParser<T>(val error: String): Parser<T, Nothing> {
     override fun invoke(input: Input<T>): ParseResult<T, Nothing> = Failure(error, input.location)
 }
 
+/**
+ * [Parser] that parses nothing and always fails with [error]
+ * @see ErrorParser
+ */
 fun<T> fail(error: String): Parser<T, Nothing> = ErrorParser<T>(error).asParser()
 
+/**
+ * [Parser] that wraps another parser [inner], but has a different [name]
+ * @see named
+ */
 data class NamedParser<T, R>(val name: String, val inner: Parser<T, R>): Parser<T, R> {
     override fun invoke(input: Input<T>): ParseResult<T, R> {
         val parse = inner(input)
@@ -28,8 +51,16 @@ data class NamedParser<T, R>(val name: String, val inner: Parser<T, R>): Parser<
     }
 }
 
+/**
+ * [Parser] that wraps another parser [inner], but has a different [name]
+ * @see NamedParser
+ */
 infix fun<T, R> Parser<T, R>.named(name: String): Parser<T, R> = NamedParser(name, this).asParser()
 
+/**
+ * [Parser] that only parses a constant string [c]
+ * @see constant
+ */
 data class ConstantParser(val c: String): Parser<Char, String> {
     override fun invoke(input: Input<Char>): ParseResult<Char, String> {
         return when {
@@ -39,8 +70,16 @@ data class ConstantParser(val c: String): Parser<Char, String> {
     }
 }
 
+/**
+ * [Parser] that only parses a constant string [c]
+ * @see ConstantParser
+ */
 fun constant(c: String): Parser<Char, String> = ConstantParser(c).asParser()
 
+/**
+ * [Parser] that works the same way as the regular expression [r]
+ * @see regex
+ */
 data class RegexParser(val r: Regex): Parser<Char, String> {
     override fun invoke(input: Input<Char>): ParseResult<Char, String> {
         val mtcher = r.toPattern().matcher(input.source.asCharSequence())
@@ -51,9 +90,23 @@ data class RegexParser(val r: Regex): Parser<Char, String> {
     }
 }
 
+/**
+ * [Parser] that works the same way as the regular expression [str]
+ * @see RegexParser
+ */
 fun regex(str: String): Parser<Char, String> = RegexParser(str.toRegex()).asParser()
+/**
+ * [Parser] that works the same way as the regular expression [re]
+ * @see RegexParser
+ */
 fun regex(re: Regex): Parser<Char, String> = RegexParser(re).asParser()
 
+/**
+ * [Parser] that parses a single token iff it corresponds to [test]
+ * @property testDescription the name of the parse
+ * @see token
+ * @see char
+ */
 data class TokenParser<T>(val testDescription: String, val test: (T) -> Boolean): Parser<T, T> {
     override fun invoke(input: Input<T>) = run {
         val first = input.source.firstOrNull()
@@ -64,22 +117,58 @@ data class TokenParser<T>(val testDescription: String, val test: (T) -> Boolean)
     }
 }
 
+/**
+ * [Parser] that parses a single char iff it equals to [ch]
+ */
 fun char(ch: Char): Parser<Char, Char> = TokenParser<Char>("'$ch'") { it == ch }.asParser()
+/**
+ * [Parser] that parses a single token iff it corresponds to [predicate]
+ */
 fun char(predicate: (Char) -> Boolean): Parser<Char, Char> =
         TokenParser("#predicate#", predicate).asParser()
+/**
+ * [Parser] that parses any character
+ */
 fun anyChar(): Parser<Char, Char> = TokenParser<Char>("any character"){ true }.asParser()
+/**
+ * [Parser] that parses a single character if it is in [range]
+ */
 fun range(range: CharRange): Parser<Char, Char> = TokenParser<Char>("$range"){ it in range }.asParser()
+/**
+ * [Parser] that parses a single character if it is contained in string [ch]
+ */
 fun oneOf(ch: String): Parser<Char, Char> = TokenParser<Char>("oneOf(\"${ch}\")") { it in ch }.asParser()
 
+/**
+ * [Parser] that parses a single token iff it equals to [ch]
+ */
 fun<T> token(ch: T): Parser<T, T> = TokenParser<T>("'$ch'") { it == ch }.asParser()
+/**
+ * [Parser] that parses a single token iff it corresponds to [predicate]
+ */
 fun<T> token(predicate: (T) -> Boolean): Parser<T, T> = TokenParser("#predicate#", predicate).asParser()
+/**
+ * [Parser] that parses any single token
+ */
 fun<T> anyToken(): Parser<T, T> = TokenParser<T>("any token"){ true }.asParser()
+/**
+ * [Parser] that parses any token iff it is in [range]
+ */
 fun<T: Comparable<T>> range(range: ClosedRange<T>): Parser<T, T> =
         TokenParser<T>("$range"){ it in range }.asParser()
+/**
+ * [Parser] that parses any token iff it is in [ch]
+ */
 fun<T> oneOf(ch: Collection<T>): Parser<T, T> =
         TokenParser<T>("oneOf(${ch.joinToString()})") { it in ch }.asParser()
+/**
+ * [Parser] that parses any token iff it is in [ch]
+ */
 fun<T> oneOf(vararg ch: T) = oneOf(ch.asList()).asParser()
 
+/**
+ * The end of input. Succeeds if there is no input left.
+ */
 class EofParser<T>: Parser<T, Unit> {
     override fun invoke(input: Input<T>) = when {
         input.source.isEmpty() -> Success(input, Unit)
@@ -87,4 +176,7 @@ class EofParser<T>: Parser<T, Unit> {
     }
 }
 
+/**
+ * The end of input. Succeeds if there is no input left.
+ */
 fun <T> eof(): Parser<T, Unit> = EofParser<T>().asParser()
