@@ -8,7 +8,7 @@ import ru.spbstu.kparsec.parsers.Literals.FLOAT
 import ru.spbstu.kparsec.parsers.Literals.lexeme
 import kotlin.test.assertEquals
 
-class CombinatorTest {
+class CombinatorsTest {
     @Test
     fun `zip2 sanity check`() {
         assertEquals(2L to 'z', zip(CINTEGER, anyChar()).parse("2z").assertResult())

@@ -1,11 +1,12 @@
-package ru.spbstu.kparsec.parsers
+package ru.spbstu.kparsec.examples
 
 import ru.spbstu.kparsec.*
+import ru.spbstu.kparsec.parsers.*
 import ru.spbstu.kparsec.parsers.Literals.lexeme
 
 private fun List<Double>.product() = foldRight(1.0){ a, b -> a * b }
 
-object CalculatorParser {
+object SimpleCalculatorParser : DelegateParser<Char, Double> {
 
     val atom: Parser<Char, Double> = Literals.FLOAT or (-lexeme('(') + defer { expr } + -lexeme(')'))
 
@@ -16,5 +17,5 @@ object CalculatorParser {
     val sum = sum_.map { it.sum() }
 
     val expr = sum
-    val whole = expr + eof()
+    override val self = expr + eof()
 }

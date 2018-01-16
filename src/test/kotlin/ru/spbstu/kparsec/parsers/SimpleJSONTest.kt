@@ -1,13 +1,15 @@
 package ru.spbstu.kparsec.parsers
 
 import org.junit.Test
+import ru.spbstu.kparsec.Parser
 import ru.spbstu.kparsec.assertResult
+import ru.spbstu.kparsec.examples.SimpleJSONParser
 import ru.spbstu.kparsec.parse
 import kotlin.test.assertEquals
 
 class SimpleJSONTest {
 
-    val parser = SimpleJSONParser.whole
+    val parser: Parser<Char, Any?> = SimpleJSONParser
 
     @Test
     fun `SimpleJSON parser parses simple values`() {

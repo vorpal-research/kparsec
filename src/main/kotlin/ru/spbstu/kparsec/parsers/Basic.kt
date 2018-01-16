@@ -18,6 +18,11 @@ data class SuccessParser<T, R>(val result: R): Parser<T, R> {
 }
 
 /**
+ * [Parser] that parses nothing, always succeeds and returns nothing
+ * @see SuccessParser
+ */
+fun<T> empty(): Parser<T, Unit> = SuccessParser<T, Unit>(Unit).asParser()
+/**
  * [Parser] that parses nothing, always succeeds and returns [result]
  * @see SuccessParser
  */

@@ -2,28 +2,28 @@ package ru.spbstu.kparsec.parsers
 
 import ru.spbstu.kparsec.Parser
 
-@JvmName("plus<Any, Any>")
+@JvmName("plusAnyAny")
 operator fun <T, A> Parser<T, A>.plus(that: Parser<T, A>): Parser<T, List<A>> =
         zip(this, that){ a, b -> listOf(a, b) }
-@JvmName("plus<Unit, Unit>")
+@JvmName("plusUnitUnit")
 operator fun <T> Parser<T, Unit>.plus(that: Parser<T, Unit>): Parser<T, Unit> = zip(this, that){ _, _ -> }
-@JvmName("plus<Unit, Any>")
+@JvmName("plusUnitAny")
 operator fun <T, B> Parser<T, Unit>.plus(that: Parser<T, B>): Parser<T, B> = zip(this, that) { _, b -> b }
-@JvmName("plus<Any, Unit>")
+@JvmName("plusAnyUnit")
 operator fun <T, A> Parser<T, A>.plus(that: Parser<T, Unit>): Parser<T, A> = zip(this, that) { a, _ -> a }
-@JvmName("plus<Collection, Any>")
+@JvmName("plusCollectionAny")
 operator fun <T, A> Parser<T, Collection<A>>.plus(that: Parser<T, A>): Parser<T, List<A>> =
         zip(this, that) { a, b -> a + b }
-@JvmName("plus<Any, Collection>")
+@JvmName("plusAnyCollection")
 operator fun <T, A> Parser<T, A>.plus(that: Parser<T, Collection<A>>): Parser<T, List<A>> =
         zip(this, that) { a, b -> listOf(a) + b }
-@JvmName("plus<Collection, Collection>")
+@JvmName("plusCollectionCollection")
 operator fun <T, A> Parser<T, Collection<A>>.plus(that: Parser<T, Collection<A>>): Parser<T, List<A>> =
         zip(this, that) { a, b -> a + b }
-@JvmName("plus<Unit, Collection>")
+@JvmName("plusUnitCollection")
 operator fun <T, A, C: Collection<A>> Parser<T, Unit>.plus(that: Parser<T, C>): Parser<T, C> =
         zip(this, that) { _, b -> b }
-@JvmName("plus<Collection, Unit>")
+@JvmName("plusCollectionUnit")
 operator fun <T, A, C: Collection<A>> Parser<T, C>.plus(that: Parser<T, Unit>): Parser<T, C> =
         zip(this, that) { a, _ -> a }
 

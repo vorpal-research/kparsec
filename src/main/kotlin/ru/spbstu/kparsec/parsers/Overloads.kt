@@ -14,12 +14,16 @@ import ru.spbstu.kparsec.Parser
  * ```
  */
 interface StringsAsParsers {
-    operator fun String.unaryPlus(): Parser<Char, String> = Literals.lexeme(this)
-    operator fun Char.unaryPlus(): Parser<Char, Char> = Literals.lexeme(this)
-    operator fun CharRange.unaryPlus(): Parser<Char, Char> = Literals.lexeme(range(this))
+    val ignored: Parser<Char, Any?> get() = Literals.SPACES
+
+    operator fun String.unaryPlus(): Parser<Char, String> = -ignored + constant(this) + -ignored
+    operator fun Char.unaryPlus(): Parser<Char, Char> = -ignored + char(this) + -ignored
+    operator fun CharRange.unaryPlus(): Parser<Char, Char> = -ignored + range(this) + -ignored
     operator fun String.unaryMinus(): Parser<Char, Unit> = -+this
     operator fun Char.unaryMinus(): Parser<Char, Unit> = -+this
     operator fun CharRange.unaryMinus(): Parser<Char, Unit> = -+this
+
+    fun <A> lexeme(self: Parser<Char, A>): Parser<Char, A> = -ignored + self + -ignored
 }
 
 /**
@@ -34,4 +38,6 @@ interface StringsAsParsers {
  *   }
  * ```
  */
-fun StringsAsParsers(): StringsAsParsers = object : StringsAsParsers{}
+fun StringsAsParsers(ignored: Parser<Char, Any?> = Literals.SPACES): StringsAsParsers = object : StringsAsParsers{
+    override val ignored = ignored
+}
