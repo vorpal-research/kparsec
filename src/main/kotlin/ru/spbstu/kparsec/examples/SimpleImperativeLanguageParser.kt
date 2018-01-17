@@ -61,18 +61,18 @@ object SimpleImperativeLanguageParser: StringsAsParsers, DelegateParser<Char, As
 
     val expr: Parser<Char, Expression> = op
 
-    val declaration = (-"var" + variable).map { Declaration(it.name) }
-    val assignment = (expr + -"=" + expr).map { (l, r) -> Assignment(l, r) }
-    val block = (-"{" + (defer { statement } joinedBy -";") + -"}").map(::Block)
-    val `if`     =
+    val declaration= (-"var" + variable).map { Declaration(it.name) }
+    val assignment= (expr + -'=' + expr).map { (l, r) -> Assignment(l, r) }
+    val block= (-'{' + (defer { statement } joinedBy -';') + -'}').map(::Block)
+    val `if`=
             zip(
-                    -"if" + -"(" + expr + -")",
+                    -"if" + -'(' + expr + -')',
                     block or defer { statement },
                     (-"else" + (block or defer { statement })).orNot()
             ) { c, t, f -> If(c, t, f) }
-    val `while`     =
+    val `while`=
             zip(
-                    -"while" + -"(" + expr + -")",
+                    -"while" + -'(' + expr + -')',
                     block or defer { statement }
             ) { c, b -> While(c, b) }
 
