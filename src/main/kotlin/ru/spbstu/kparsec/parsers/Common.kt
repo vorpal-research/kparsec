@@ -7,7 +7,6 @@ import ru.spbstu.kparsec.Parser
  * @see Literals
  */
 object Common : StringsAsParsers {
-
     /**
      * Standard identifier `[a-zA-Z_][a-zA-Z_0-9]*`
      */
@@ -20,5 +19,13 @@ object Common : StringsAsParsers {
      * Kotlin identifier (same as Java identifier, but supporting backtick-escaping)
      */
     val KOTLIN_IDENTIFIER: Parser<Char, String> = regex(Regex("""`[^`]*`""")) or JAVA_IDENTIFIER
+    /**
+     * Common newline terminator: CR or LF or CRLF
+     */
+    val NEWLINE: Parser<Char, Unit> = (-char('\r') + -char('\n').orNot()) or -char('\n')
+
+    fun lineComment(begin: Parser<Char, Any?>) = -begin + regex(Regex("""[^\r\n]*"""))
+    val C_LINE_COMMENT: Parser<Char, String> = lineComment(constant("//"))
+    val BASH_LINE_COMMENT: Parser<Char, String> = lineComment(constant("#"))
 
 }

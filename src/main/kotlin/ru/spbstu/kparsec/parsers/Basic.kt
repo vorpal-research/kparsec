@@ -2,6 +2,7 @@ package ru.spbstu.kparsec.parsers
 
 import kotlinx.Warnings
 import ru.spbstu.kparsec.*
+import ru.spbstu.kparsec.wheels.asCharSequence
 
 /**
  * Internal stuff

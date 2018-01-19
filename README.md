@@ -28,4 +28,4 @@ object SimpleJSONParser: StringsAsParsers {
 }
 ```
 
-See this and other examples [here](https://github.com/belyaev-mikhail/kparsec/tree/master/src/test/kotlin/ru/spbstu/kparsec/parsers)
+See this and other examples [here](/belyaev-mikhail/kparsec/tree/master/src/main/kotlin/ru/spbstu/kparsec/examples)
