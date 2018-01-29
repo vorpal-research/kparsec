@@ -31,7 +31,7 @@ data class NotParser<T>(val base: Parser<T, Any?>): Parser<T, Unit> {
         val first = base(input)
         return when(first) {
             is Failure -> Success(input, Unit)
-            is Success -> Failure("not($base)", input.location)
+            is Success -> Failure("not($base)")
         }
     }
 }

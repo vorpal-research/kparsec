@@ -34,7 +34,7 @@ fun<T, R> success(result: R): Parser<T, R> = SuccessParser<T, R>(result).asParse
  * @see fail
  */
 data class ErrorParser<T>(val error: String): Parser<T, Nothing> {
-    override fun invoke(input: Input<T>): ParseResult<T, Nothing> = Failure(error, input.location)
+    override fun invoke(input: Input<T>): ParseResult<T, Nothing> = Failure(error)
 }
 
 /**
@@ -70,8 +70,8 @@ infix fun<T, R> Parser<T, R>.named(name: String): Parser<T, R> = NamedParser(nam
 data class ConstantParser(val c: String): Parser<Char, String> {
     override fun invoke(input: Input<Char>): ParseResult<Char, String> {
         return when {
-            input.source.asCharSequence().startsWith(c) -> Success(input.drop(c.length), c)
-            else -> Failure("\"$c\"", input.location)
+            input.asCharSequence().startsWith(c) -> Success(input.drop(c.length), c)
+            else -> Failure("\"$c\"")
         }
     }
 }
@@ -88,10 +88,10 @@ fun constant(c: String): Parser<Char, String> = ConstantParser(c).asParser()
  */
 data class RegexParser(val r: Regex): Parser<Char, String> {
     override fun invoke(input: Input<Char>): ParseResult<Char, String> {
-        val mtcher = r.toPattern().matcher(input.source.asCharSequence())
+        val mtcher = r.toPattern().matcher(input.asCharSequence())
         return when {
             mtcher.lookingAt() -> Success(input.drop(mtcher.end()), mtcher.group())
-            else -> Failure("regex $r", input.location)
+            else -> Failure("regex $r")
         }
     }
 }
@@ -115,10 +115,10 @@ fun regex(re: Regex): Parser<Char, String> = RegexParser(re).asParser()
  */
 data class TokenParser<T>(val testDescription: String, val test: (T) -> Boolean): Parser<T, T> {
     override fun invoke(input: Input<T>) = run {
-        val first = input.source.firstOrNull()
+        val first = input.currentOrNull()
         when {
             first != null && test(first) -> Success(input.next(), first)
-            else -> Failure(testDescription, input.location)
+            else -> Failure(testDescription)
         }
     }
 }
@@ -177,8 +177,8 @@ fun<T> oneOf(vararg ch: T) = oneOf(ch.asList()).asParser()
  */
 class EofParser<T>: Parser<T, Unit> {
     override fun invoke(input: Input<T>) = when {
-        input.source.isEmpty() -> Success(input, Unit)
-        else -> Failure("<EOF>", input.location)
+        input.isEmpty() -> Success(input, Unit)
+        else -> Failure("<EOF>")
     }
 }
 

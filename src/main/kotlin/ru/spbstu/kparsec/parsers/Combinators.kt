@@ -87,7 +87,7 @@ data class ChoiceParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, A
 
     override fun invoke(input: Input<T>): ParseResult<T, A> {
         val it = elements.iterator()
-        if(!it.hasNext()) return Failure("<empty choice>", input.location)
+        if(!it.hasNext()) return Failure("<empty choice>")
 
         var currentResult = it.next().invoke(input)
         for(parser in it) {
@@ -140,7 +140,7 @@ data class FilterParser<T, A>(val lhv: Parser<T, A>, val p: (A) -> Boolean): Par
         return when {
             r is Success && p(r.result) -> r
             r is Failure -> r
-            else -> Failure("filter", input.location)
+            else -> Failure("filter")
         }
     }
 }
@@ -277,7 +277,7 @@ data class LimitedManyParser<T, A>(val element: Parser<T, A>, val limit: ClosedR
             res = element(curInput)
         }
 
-        if(i < limit.start) return Failure("$element * $limit", curInput.location)
+        if(i < limit.start) return Failure("$element * $limit")
         return Success(curInput, col)
     }
 }

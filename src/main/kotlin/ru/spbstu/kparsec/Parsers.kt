@@ -19,7 +19,7 @@ interface Parser<T, out R> {
  * Parse a string
  * @see StringInput
  */
-fun<T> Parser<Char, T>.parse(string: String): ParseResult<Char, T> = this(StringInput(string))
+fun<T> Parser<Char, T>.parse(string: CharSequence): ParseResult<Char, T> = this(StringInput(string))
 
 /**
  * Parse a list of tokens

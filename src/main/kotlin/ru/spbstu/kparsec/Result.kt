@@ -25,7 +25,7 @@ data class Success<out T, out R>(val rest: Input<T>, val result: R): ParseResult
  * @property expected string representation of what was expected here
  * @property location current source location
  */
-data class Failure(val expected: String, val location: Location): ParseResult<Nothing, Nothing>()
+data class Failure(val expected: String): ParseResult<Nothing, Nothing>()
 
 /**
  * Transform the result value using a function [f]

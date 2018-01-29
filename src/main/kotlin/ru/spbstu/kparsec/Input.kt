@@ -1,50 +1,54 @@
 package ru.spbstu.kparsec
 
-import ru.spbstu.kparsec.wheels.asCharList
+import ru.spbstu.kparsec.wheels.*
 
-data class Location(val source: String, val line: Int, val col: Int) {
-    operator fun invoke(code: Char) = when(code) {
+interface Location<T> {
+    operator fun invoke(token: T): Location<Char>
+}
+
+data class CharLocation(val source: String, val line: Int, val col: Int): Location<Char> {
+    override operator fun invoke(code: Char)= when(code) {
         '\n' -> copy(line = line + 1, col = 0)
         else -> copy(col = col + 1)
     }
 }
 
 interface Input<out T> {
-    val source: List<T>
-    val location: Location
+    val current: T
 
+    fun isEmpty(): Boolean
     fun next(): Input<T> = drop(1)
 
     fun drop(n: Int): Input<T> {
         var res = this
         repeat(n) {
-            if(res.source.isEmpty()) return res
+            if(res.isEmpty()) return res
             res = res.next()
         }
         return res
     }
 
-    fun sourceAsString(): String = source.joinToString("")
+    fun asTokenSequence(): TokenSequence<T>
 }
 
-fun<T> List<T>.subList(from: Int): List<T> = subList(from, size)
+fun Input<Char>.asCharSequence(): CharSequence = asTokenSequence().asCharSequence()
+fun<T> Input<T>.currentOrNull() = if(isEmpty()) null else current
 
-data class StringInput(val string: String, val offset: Int = 0): Input<Char> {
-    override val source: List<Char> get() = string.asCharList().subList(offset)
-    override val location: Location = Location("<string>", 0, offset)
-
+data class StringInput(val string: CharSequence,
+                       val offset: Int = 0
+): Input<Char> {
+    override fun isEmpty(): Boolean = string.length <= offset
+    override val current: Char get() = string[offset]
     override fun next(): Input<Char> = copy(offset = offset + 1)
     override fun drop(n: Int): StringInput = copy(offset = offset + n)
-
-    override fun sourceAsString(): String = string.drop(offset)
+    override fun asTokenSequence(): TokenSequence<Char> = string.asTokenSequence().subSequence(offset, string.length)
 }
 
-data class ListInput<T>(val data: List<T>, val offset: Int = 0): Input<T> {
-    override val source: List<T> get() = data.subList(offset)
-    override val location: Location = Location("<string>", 0, offset)
-
+data class ListInput<T>(val list: List<T>,
+                        val offset: Int = 0): Input<T> {
+    override val current: T get() = list[offset]
+    override fun isEmpty(): Boolean = list.size <= offset
     override fun next(): Input<T> = copy(offset = offset + 1)
     override fun drop(n: Int): ListInput<T> = copy(offset = offset + n)
-
-    override fun sourceAsString(): String = source.joinToString("")
+    override fun asTokenSequence(): TokenSequence<T> = list.asTokenSequence().subSequence(offset, list.size)
 }

@@ -2,7 +2,9 @@ package ru.spbstu.kparsec.wheels
 
 interface IterableSequence<out T>: Sequence<T>, Iterable<T>
 
-data class MemoizedSequence<T>(val input: Iterator<T>, val storage: MutableList<T>): IterableSequence<T> {
+data class MemoizedSequence<out T>(val input: Iterator<T>,
+                                   val storage: MutableList<@UnsafeVariance T> = mutableListOf()): IterableSequence<T> {
+    constructor(input: Sequence<T>, storage: MutableList<T> = mutableListOf()): this(input.iterator(), storage)
 
     private val finished get() = !input.hasNext()
     private fun step() = input.next().also { storage.add(it) }
@@ -26,7 +28,14 @@ data class MemoizedSequence<T>(val input: Iterator<T>, val storage: MutableList<
     }
 
     override fun iterator(): Iterator<T> = TheIterator()
+    operator fun get(index: Int): T {
+        while(index < storage.size) {
+            if(finished) throw IndexOutOfBoundsException()
+            step()
+        }
+        return storage[index]
+    }
 }
 
-fun<T> Sequence<T>.memoized(): IterableSequence<T> = MemoizedSequence(this.iterator(), mutableListOf())
-fun<T> Sequence<T>.memoizedTo(storage: MutableList<T>): IterableSequence<T> = MemoizedSequence(this.iterator(), storage)
+fun<T> Sequence<T>.memoized(): IterableSequence<T> = MemoizedSequence(this, mutableListOf())
+fun<T> Sequence<T>.memoizedTo(storage: MutableList<T>): IterableSequence<T> = MemoizedSequence(this, storage)
