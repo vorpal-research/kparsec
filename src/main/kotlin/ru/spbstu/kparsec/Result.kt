@@ -20,12 +20,20 @@ sealed class ParseResult<out T, out R>
  */
 data class Success<out T, out R>(val rest: Input<T>, val result: R): ParseResult<T, R>()
 
+sealed class NoSuccess: ParseResult<Nothing, Nothing>() {
+    abstract val expected: String
+    abstract fun copy(expected: String = this.expected): NoSuccess
+}
+
 /**
  * Parse result representing failure
  * @property expected string representation of what was expected here
  * @property location current source location
  */
-data class Failure(val expected: String): ParseResult<Nothing, Nothing>()
+@Suppress("DATA_CLASS_OVERRIDE_DEFAULT_VALUES_WARNING")
+data class Failure(override val expected: String): NoSuccess()
+@Suppress("DATA_CLASS_OVERRIDE_DEFAULT_VALUES_WARNING")
+data class Error(override val expected: String): NoSuccess()
 
 /**
  * Transform the result value using a function [f]
@@ -35,5 +43,5 @@ data class Failure(val expected: String): ParseResult<Nothing, Nothing>()
 @Suppress(Warnings.NOTHING_TO_INLINE)
 inline fun<T, R, S> ParseResult<T, R>.map(f: (R) -> S): ParseResult<T, S> = when(this) {
     is Success -> Success(rest, result = f(result))
-    is Failure -> this
+    is NoSuccess -> this
 }

@@ -56,7 +56,7 @@ data class NamedParser<T, R>(val name: String, val inner: Parser<T, R>): Parser<
         val parse = inner(input)
         return when(parse) {
             is Success -> parse
-            is Failure -> parse.copy(expected = name)
+            is NoSuccess -> parse.copy(expected = name)
         }
     }
 

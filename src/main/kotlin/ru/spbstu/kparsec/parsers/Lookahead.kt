@@ -9,7 +9,7 @@ data class LookaheadParser<T, A>(val base: Parser<T, A>): Parser<T, A> {
     override fun invoke(input: Input<T>): ParseResult<T, A> {
         val first = base(input)
         return when(first) {
-            is Failure -> first
+            is NoSuccess -> first
             is Success -> first.copy(rest = input)
         }
     }
@@ -35,6 +35,7 @@ data class NotParser<T>(val base: Parser<T, Any?>): Parser<T, Unit> {
         return when(first) {
             is Failure -> Success(input, Unit)
             is Success -> Failure("not($base)")
+            is Error -> first
         }
     }
 

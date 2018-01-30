@@ -13,10 +13,10 @@ data class ZipParser<T, A, B, R>(val lhv: Parser<T, A>, val rhv: Parser<T, B>, v
                 val rr = rhv(lr.rest)
                 when(rr) {
                     is Success -> Success(rr.rest, f(lr.result, rr.result))
-                    is Failure -> rr
+                    is NoSuccess -> rr
                 }
             }
-            is Failure -> lr
+            is NoSuccess -> lr
         }
     }
 
@@ -59,7 +59,7 @@ data class SeqParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, List
         var currentResult = it.next().invoke(input)
         for(parser in it) {
             when(currentResult) {
-                is Failure -> return currentResult
+                is NoSuccess -> return currentResult
                 is Success -> {
                     result += currentResult.result
                     currentResult = parser(currentResult.rest)
@@ -68,7 +68,7 @@ data class SeqParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, List
         }
         return when(currentResult) {
             is Success -> Success(currentResult.rest, result.apply { add(currentResult.result) })
-            is Failure -> currentResult
+            is NoSuccess -> currentResult
         }
     }
 
@@ -98,7 +98,7 @@ data class ChoiceParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, A
         var currentResult = it.next().invoke(input)
         for(parser in it) {
             when(currentResult) {
-                is Success -> return currentResult
+                is Success, is Error -> return currentResult
                 is Failure -> {
                     currentResult = parser(input)
                 }
@@ -129,7 +129,7 @@ data class MapParser<T, A, R>(val lhv: Parser<T, A>, val f: (A) -> R): Parser<T,
         val r = lhv(input)
         return when(r) {
             is Success -> Success(r.rest, f(r.result))
-            is Failure -> r
+            is NoSuccess -> r
         }
     }
 
@@ -151,7 +151,7 @@ data class FilterParser<T, A>(val lhv: Parser<T, A>, val p: (A) -> Boolean): Par
         val r = lhv(input)
         return when {
             r is Success && p(r.result) -> r
-            r is Failure -> r
+            r is NoSuccess -> r
             else -> Failure("filter")
         }
     }
@@ -230,7 +230,7 @@ data class AltParser<T, A, B: A>(val element: Parser<T, B>, val default: A): Par
     override fun invoke(input: Input<T>): ParseResult<T, A> {
         val base = element(input)
         return when(base) {
-            is Success -> base
+            is Success, is Error -> base
             is Failure -> Success(input, default)
         }
     }
@@ -348,7 +348,7 @@ data class ChainParser<T, A, B>(val base: Parser<T, A>, val next: (A) -> Parser<
     override fun invoke(input: Input<T>): ParseResult<T, B> {
         val first = base(input)
         return when(first) {
-            is Failure -> first
+            is NoSuccess -> first
             is Success -> next(first.result).invoke(first.rest)
         }
     }

@@ -12,11 +12,6 @@ class SimpleJSONTest {
     val parser: Parser<Char, Any?> = SimpleJSONParser
 
     @Test
-    fun whatever() {
-        println(parser.description)
-    }
-
-    @Test
     fun `SimpleJSON parser parses simple values`() {
         assertEquals(23.0, parser.parse("23").assertResult())
         assertEquals(33.0, parser.parse("33.0").assertResult())
