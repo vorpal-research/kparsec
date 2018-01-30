@@ -40,6 +40,10 @@ private data class Entry<T, E, K>(
         get() = "operator(${op.description})"
 }
 
+@DslMarker
+annotation class KParsecOperatorTable
+
+@KParsecOperatorTable
 class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {
     private val map: MutableMap<SortedKey, MutableList<Entry<T, Base, *>>> = mutableMapOf()
 
