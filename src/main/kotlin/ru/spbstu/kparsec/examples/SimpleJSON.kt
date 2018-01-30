@@ -4,6 +4,7 @@ import ru.spbstu.kparsec.Parser
 import ru.spbstu.kparsec.parsers.*
 
 object SimpleJSONParser: StringsAsParsers, DelegateParser<Char, Any?> {
+
     val string = Literals.JSTRING
     val number = Literals.FLOAT
     val boolean = Literals.BOOLEAN
@@ -21,4 +22,5 @@ object SimpleJSONParser: StringsAsParsers, DelegateParser<Char, Any?> {
     val element: Parser<Char, Any?> = nully or string or number or boolean or array or obj
 
     override val self = element + eof()
+
 }
