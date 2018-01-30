@@ -19,4 +19,6 @@ interface DelegateParser<T, R>: Parser<T, R> {
     val self: Parser<T, R>
 
     override fun invoke(input: Input<T>): ParseResult<T, R> = self.invoke(input)
+    override val description: String
+        get() = self.description
 }

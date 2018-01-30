@@ -16,6 +16,8 @@ internal inline fun<T, R> Parser<T, R>.asParser() = this
  */
 data class SuccessParser<T, R>(val result: R): Parser<T, R> {
     override fun invoke(input: Input<T>): ParseResult<T, R> = Success(input, result)
+    override val description: String
+        get() = "success($result)"
 }
 
 /**
@@ -35,6 +37,8 @@ fun<T, R> success(result: R): Parser<T, R> = SuccessParser<T, R>(result).asParse
  */
 data class ErrorParser<T>(val error: String): Parser<T, Nothing> {
     override fun invoke(input: Input<T>): ParseResult<T, Nothing> = Failure(error)
+    override val description: String
+        get() = "error($error)"
 }
 
 /**
@@ -55,6 +59,9 @@ data class NamedParser<T, R>(val name: String, val inner: Parser<T, R>): Parser<
             is Failure -> parse.copy(expected = name)
         }
     }
+
+    override val description: String
+        get() = name
 }
 
 /**
@@ -74,6 +81,9 @@ data class ConstantParser(val c: String): Parser<Char, String> {
             else -> Failure("\"$c\"")
         }
     }
+
+    override val description: String
+        get() = "\"$c\""
 }
 
 /**
@@ -94,6 +104,9 @@ data class RegexParser(val r: Regex): Parser<Char, String> {
             else -> Failure("regex $r")
         }
     }
+
+    override val description: String
+        get() = "/${r.pattern}/"
 }
 
 /**
@@ -121,6 +134,9 @@ data class TokenParser<T>(val testDescription: String, val test: (T) -> Boolean)
             else -> Failure(testDescription)
         }
     }
+
+    override val description: String
+        get() = testDescription
 }
 
 /**
@@ -180,6 +196,9 @@ class EofParser<T>: Parser<T, Unit> {
         input.isEmpty() -> Success(input, Unit)
         else -> Failure("<EOF>")
     }
+
+    override val description: String
+        get() = "<EOF>"
 }
 
 /**

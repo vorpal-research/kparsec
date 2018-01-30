@@ -19,6 +19,9 @@ data class ZipParser<T, A, B, R>(val lhv: Parser<T, A>, val rhv: Parser<T, B>, v
             is Failure -> lr
         }
     }
+
+    override val description: String
+        get() = "(${lhv.description}) (${rhv.description})"
 }
 
 /**
@@ -68,6 +71,9 @@ data class SeqParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, List
             is Failure -> currentResult
         }
     }
+
+    override val description: String
+        get() = elements.joinToString(separator = " ") { "(${it.description})" }
 }
 
 /**
@@ -100,6 +106,9 @@ data class ChoiceParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, A
         }
         return currentResult
     }
+
+    override val description: String
+        get() = elements.joinToString(separator = " | ") { "(${it.description})" }
 }
 
 /**
@@ -123,6 +132,9 @@ data class MapParser<T, A, R>(val lhv: Parser<T, A>, val f: (A) -> R): Parser<T,
             is Failure -> r
         }
     }
+
+    override val description: String
+        get() = lhv.description
 }
 
 /**
@@ -143,6 +155,9 @@ data class FilterParser<T, A>(val lhv: Parser<T, A>, val p: (A) -> Boolean): Par
             else -> Failure("filter")
         }
     }
+
+    override val description: String
+        get() = "${lhv.description}[filtered]"
 }
 
 /**
@@ -162,6 +177,9 @@ data class RecursiveParser<T, A>(val f: (Parser<T, A>) -> Parser<T, A>): Parser<
     val lz by kotlin.lazy{ f(this) }
 
     override fun invoke(input: Input<T>): ParseResult<T, A> = lz(input)
+
+    override val description: String
+        get() = lz.description
 }
 
 /**
@@ -188,6 +206,9 @@ data class LazyParser<T, A>(val f: Lazy<Parser<T, A>>): Parser<T, A> {
     override fun toString(): String {
         return "LazyParser<?>"
     }
+
+    override val description: String
+        get() = "<lazy>"
 }
 
 /**
@@ -213,6 +234,9 @@ data class AltParser<T, A, B: A>(val element: Parser<T, B>, val default: A): Par
             is Failure -> Success(input, default)
         }
     }
+
+    override val description: String
+        get() = "(${element.description}) | ([$default])"
 }
 
 /**
@@ -242,6 +266,9 @@ data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, List<A>> {
         }
         return Success(curInput, col)
     }
+
+    override val description: String
+        get() = "(${element.description})*"
 }
 
 /**
@@ -280,6 +307,9 @@ data class LimitedManyParser<T, A>(val element: Parser<T, A>, val limit: ClosedR
         if(i < limit.start) return Failure("$element * $limit")
         return Success(curInput, col)
     }
+
+    override val description: String
+        get() = "(${element.description}){$limit}"
 }
 
 /**
@@ -322,6 +352,9 @@ data class ChainParser<T, A, B>(val base: Parser<T, A>, val next: (A) -> Parser<
             is Success -> next(first.result).invoke(first.rest)
         }
     }
+
+    override val description: String
+        get() = "chain(${base.description})"
 }
 
 /**

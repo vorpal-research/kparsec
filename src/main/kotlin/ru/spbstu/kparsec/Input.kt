@@ -7,7 +7,7 @@ interface Location<T> {
 }
 
 data class CharLocation(val source: String, val line: Int, val col: Int): Location<Char> {
-    override operator fun invoke(code: Char)= when(code) {
+    override operator fun invoke(token: Char)= when(token) {
         '\n' -> copy(line = line + 1, col = 0)
         else -> copy(col = col + 1)
     }

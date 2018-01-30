@@ -13,6 +13,8 @@ interface Parser<T, out R> {
      * @return the result of parsing
      */
     operator fun invoke(input: Input<T>): ParseResult<T, R>
+
+    val description: String
 }
 
 /**

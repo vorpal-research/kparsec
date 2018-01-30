@@ -35,6 +35,9 @@ private data class Entry<T, E, K>(
 ): Parser<T, (E, E) -> E> {
     override fun invoke(input: Input<T>): ParseResult<T, (E, E) -> E> =
             op(input).map { op -> { a: E, b: E -> mapping(a, op, b) }}
+
+    override val description: String
+        get() = "operator(${op.description})"
 }
 
 class OperatorTableContext<T, Base>(val base: Parser<T, Base>) {

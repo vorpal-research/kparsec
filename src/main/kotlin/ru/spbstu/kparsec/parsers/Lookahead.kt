@@ -13,6 +13,9 @@ data class LookaheadParser<T, A>(val base: Parser<T, A>): Parser<T, A> {
             is Success -> first.copy(rest = input)
         }
     }
+
+    override val description: String
+        get() = base.description
 }
 
 /**
@@ -34,6 +37,9 @@ data class NotParser<T>(val base: Parser<T, Any?>): Parser<T, Unit> {
             is Success -> Failure("not($base)")
         }
     }
+
+    override val description: String
+        get() = "not(${base.description})"
 }
 /**
  * Parses input using [base], but does not consume anything and reverses the results.
