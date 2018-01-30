@@ -249,6 +249,11 @@ infix fun <T, A> Parser<T, A>.orElse(value: A): Parser<T, A> = AltParser(this, v
  * Always succeeds.
  */
 fun <T, A> Parser<T, A>.orNot(): Parser<T, A?> = AltParser(this, null).asParser()
+/**
+ * [Parser] that works the same way as [this], but returns `null` if [this] fails.
+ * Always succeeds.
+ */
+fun <T, A> maybe(parser: Parser<T, A>): Parser<T, A?> = parser.orNot()
 
 /**
  * [Parser] that expects multiple (or zero) occurencies of [element], stopping when [element] fails.
@@ -367,3 +372,24 @@ infix fun <T, A, B> Parser<T, A>.chain(next: (A) -> Parser<T, B>): Parser<T, B>
  * Apply [this] and then apply the result
  */
 fun <T, A> Parser<T, Parser<T, A>>.flatten(): Parser<T, A> = chain { it }
+
+/**
+ * Parses input using [base], but promotes [Failure] to [Error], making it non-recoverable.
+ */
+data class MustParser<T, A>(val base: Parser<T, A>): Parser<T, A> {
+    override fun invoke(input: Input<T>): ParseResult<T, A> {
+        val trye = base(input)
+        return when(trye) {
+            is Success, is Error -> trye
+            is Failure -> Error(trye.expected)
+        }
+    }
+
+    override val description: String
+        get() = "must(${base.description})"
+}
+
+/**
+ * Parses input using [base], but promotes [Failure] to [Error], making it non-recoverable.
+ */
+fun <T, R> must(parser: Parser<T, R>): Parser<T, R> = MustParser(parser).asParser()
