@@ -43,6 +43,10 @@ fun <T, A, B> zip(lhv: Parser<T, A>, rhv: Parser<T, B>): Parser<T, Pair<A, B>> =
  */
 fun <T, A, B, C> zip(lhv: Parser<T, A>, mhv: Parser<T, B>, rhv: Parser<T, C>): Parser<T, Triple<A, B, C>> =
         zip(lhv, mhv, rhv, ::Triple)
+/**
+ * [lhv] followed by [rhv], combining results into a [Pair]
+ */
+infix fun <T, A, B> Parser<T, A>.zipTo(rhv: Parser<T, B>): Parser<T, Pair<A, B>> = ZipParser(this, rhv, ::Pair).asParser()
 
 /**
  * Apply several parsers ([elements]) one after each other, resulting in a [List]
