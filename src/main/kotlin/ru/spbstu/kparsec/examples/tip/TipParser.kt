@@ -3,7 +3,7 @@ package ru.spbstu.kparsec.examples.tip
 import ru.spbstu.kparsec.Parser
 import ru.spbstu.kparsec.parsers.*
 
-object TIPParser : StringsAsParsers, DelegateParser<Char, AstNode> {
+object TIPParser : StringsAsParsers, DelegateParser<Char, Program> {
 
     val constant = lexeme(Literals.CINTEGER).map { Constant(it.toInt()) }
     val id = lexeme(Common.IDENTIFIER)
@@ -23,7 +23,7 @@ object TIPParser : StringsAsParsers, DelegateParser<Char, AstNode> {
                     -"(" + (defer { expr } joinedBy -",") + -")"
             ) { f, args -> InCall(f, args) }
 
-    val dereference = (-"*" + defer { expr }).map{ Load(it) }
+    val dereference = (-"*" + variable).map{ Load(it) }
     val takePointer = (-"&" + id).map { TakePtr(it) }
 
     val atom = input or
