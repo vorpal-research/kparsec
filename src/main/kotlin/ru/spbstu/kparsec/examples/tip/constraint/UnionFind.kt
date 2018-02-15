@@ -36,9 +36,16 @@ class UnionFind<T> {
             other.root === root -> true
             else -> false
         }
+
+        override fun hashCode(): Int = root.value?.hashCode() ?: 0
+
+        override fun toString(): String {
+            return "Node(value=$value, rank=$rank)"
+        }
     }
 
     fun single(value: T) = Node(value)
+    fun unite(lhv: Node, rhv: Node) = lhv unite rhv
 }
 
 

@@ -14,26 +14,6 @@ fun<T,R> Parser<T, R>.manyToString() = many().map { it.joinToString("") }
 
 infix fun<T> Parser<T, String>.concat(that: Parser<T, String>) = zip(this, that) { x, y -> x + y  }
 
-class Autowired<T, R>(body: () -> Parser<T, R>) {
-    companion object {
-        private object NOT_INITIALIZED
-    }
-
-    private var initializer: (() -> Parser<T, R>)? = body
-    private var lazyValue: Any? = NOT_INITIALIZED
-
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): Parser<T, Token<R>> = synchronized(this){
-        return when(lazyValue) {
-            null -> {
-                (initializer!!().map { Token(property.name, it) } named property.name).also { lazyValue = it }
-            }
-            else -> lazyValue as Parser<T, Token<R>>
-        }
-    }
-}
-
-fun <T, R> autowire(body: () -> Parser<T, R>) = Autowired(body)
-
 object KotlinLexer : StringsAsParsers, DelegateParser<Char, List<String>> {
 
     override val ignored: Parser<Char, Unit> = success(Unit)
@@ -53,7 +33,7 @@ object KotlinLexer : StringsAsParsers, DelegateParser<Char, List<String>> {
     const val LBRACE = '{'
     const val RBRACE = '}'
 
-    val shebang by autowire {
+    val shebang by lazy {
         -"#!" + inputCharacters
     }
     val inputCharacters by lazy {
