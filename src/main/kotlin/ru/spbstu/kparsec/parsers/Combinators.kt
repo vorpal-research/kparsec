@@ -1,6 +1,5 @@
 package ru.spbstu.kparsec.parsers
 
-import jdk.Exported
 import ru.spbstu.kparsec.*
 
 /**
