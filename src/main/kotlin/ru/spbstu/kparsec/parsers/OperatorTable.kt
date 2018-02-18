@@ -1,9 +1,6 @@
 package ru.spbstu.kparsec.parsers
 
-import ru.spbstu.kparsec.Input
-import ru.spbstu.kparsec.ParseResult
-import ru.spbstu.kparsec.Parser
-import ru.spbstu.kparsec.map
+import ru.spbstu.kparsec.*
 
 const val DEFAULT_PRIORITY = 7
 interface Assoc {
@@ -33,7 +30,7 @@ private data class Entry<T, E, K>(
         val op: Parser<T, K>,
         val mapping: Mapping<E, K>
 ): Parser<T, (E, E) -> E> {
-    override fun invoke(input: Input<T>): ParseResult<T, (E, E) -> E> =
+    override fun invoke(input: Source<T>): ParseResult<T, (E, E) -> E> =
             op(input).map { op -> { a: E, b: E -> mapping(a, op, b) }}
 
     override val description: String

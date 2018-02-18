@@ -14,16 +14,17 @@ import ru.spbstu.kparsec.Parser
  * ```
  */
 interface StringsAsParsers {
-    val ignored: Parser<Char, Any?> get() = Literals.SPACES
+    val skippedBefore: Parser<Char, Any?> get() = Literals.SPACES
+    val skippedAfter: Parser<Char, Any?> get() = skippedBefore
 
-    operator fun String.unaryPlus(): Parser<Char, String> = -ignored + constant(this) + -ignored
-    operator fun Char.unaryPlus(): Parser<Char, Char> = -ignored + char(this) + -ignored
-    operator fun CharRange.unaryPlus(): Parser<Char, Char> = -ignored + range(this) + -ignored
+    operator fun String.unaryPlus(): Parser<Char, String> = -skippedBefore + constant(this) + -skippedAfter
+    operator fun Char.unaryPlus(): Parser<Char, Char> = -skippedBefore + char(this) + -skippedAfter
+    operator fun CharRange.unaryPlus(): Parser<Char, Char> = -skippedBefore + range(this) + -skippedAfter
     operator fun String.unaryMinus(): Parser<Char, Unit> = -+this
     operator fun Char.unaryMinus(): Parser<Char, Unit> = -+this
     operator fun CharRange.unaryMinus(): Parser<Char, Unit> = -+this
 
-    fun <A> lexeme(self: Parser<Char, A>): Parser<Char, A> = -ignored + self + -ignored
+    fun <A> lexeme(self: Parser<Char, A>): Parser<Char, A> = -skippedBefore + self + -skippedAfter
 }
 
 /**
@@ -39,5 +40,5 @@ interface StringsAsParsers {
  * ```
  */
 fun StringsAsParsers(ignored: Parser<Char, Any?> = Literals.SPACES): StringsAsParsers = object : StringsAsParsers{
-    override val ignored = ignored
+    override val skippedBefore = ignored
 }

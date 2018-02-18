@@ -11,6 +11,7 @@ import ru.spbstu.kparsec.examples.tip.constraint.Solver
 import ru.spbstu.kparsec.examples.tip.constraint.Var
 import ru.spbstu.kparsec.parse
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TipParserTest {
     @Test
@@ -22,7 +23,7 @@ class TipParserTest {
                     x = input;
                     y = alloc;
                     *x = y;
-                    z = *(y);
+                    z = *y;
                     return x;
                 }
 
@@ -105,6 +106,16 @@ class TipParserTest {
 
         ))
         solver.solve()
-        println(solver.result().joinToString("\n"))
+        assertTrue(
+                solver.result().toSet().containsAll(setOf(
+                        Var("[[swap.x]]") eq Ptr(Int),
+                        Var("[[swap.y]]") eq Ptr(Int),
+                        Var("[[swap.tmp]]") eq Int,
+                        Var("[[swap]]") eq Fun(Ptr(Int), Ptr(Int), Ptr(Int)),
+                        Var("[[main.x]]") eq Ptr(Int),
+                        Var("[[main.y]]") eq Int,
+                        Var("[[main.z]]") eq Ptr(Int)
+                ))
+        )
     }
 }

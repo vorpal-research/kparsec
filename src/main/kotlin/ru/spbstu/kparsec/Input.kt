@@ -3,14 +3,21 @@ package ru.spbstu.kparsec
 import ru.spbstu.kparsec.wheels.*
 
 interface Location<T> {
-    operator fun invoke(token: T): Location<Char>
+    operator fun invoke(token: T): Location<T>
 }
 
-data class CharLocation(val source: String, val line: Int, val col: Int): Location<Char> {
+data class CharLocation(val source: String, val line: Int = 1, val col: Int = 0): Location<Char> {
     override operator fun invoke(token: Char)= when(token) {
         '\n' -> copy(line = line + 1, col = 0)
         else -> copy(col = col + 1)
     }
+
+    override fun toString() = "$source:$line:$col"
+}
+
+data class OffsetLocation<T>(val source: String, val offset: Int = 0): Location<T> {
+    override fun invoke(token: T): Location<T> = copy(offset = offset + 1)
+    override fun toString() = "$source:+$offset"
 }
 
 interface Input<out T> {
@@ -52,3 +59,20 @@ data class ListInput<T>(val list: List<T>,
     override fun drop(n: Int): ListInput<T> = copy(offset = offset + n)
     override fun asTokenSequence(): TokenSequence<T> = list.asTokenSequence().subSequence(offset, list.size)
 }
+
+data class Source<out T>(val input: Input<T>, val location: Location<@UnsafeVariance T>): Input<T> by input {
+    override fun next()= Source(input.next(), location(current))
+
+    override fun drop(n: Int): Source<T> {
+        var res = this
+        repeat(n) {
+            if(res.isEmpty()) return res
+            res = res.next()
+        }
+        return res
+    }
+}
+
+fun Source(sourceName: String, input: Input<Char>) = Source(input, CharLocation(sourceName))
+@JvmName("SourceGeneric")
+fun<T> Source(sourceName: String, input: Input<T>) = Source(input, OffsetLocation(sourceName))

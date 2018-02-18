@@ -37,7 +37,7 @@ object SimpleImperativeLanguageParser: StringsAsParsers, DelegateParser<Char, As
             -(char { it != '*' } or (char('*') notFollowedBy char('/'))).many() +
             -constant("*/")
 
-    override val ignored = Literals.lexeme(-comment.many())
+    override val skippedBefore = Literals.lexeme(-comment.many())
 
     val dliteral= Literals.FLOAT.map(::DoubleLiteral)
     val bliteral = (-"true").map { TrueLiteral } or (-"false").map { FalseLiteral }

@@ -18,11 +18,12 @@ sealed class ParseResult<out T, out R>
  * @property rest the rest of input
  * @property result the actual result
  */
-data class Success<out T, out R>(val rest: Input<T>, val result: R): ParseResult<T, R>()
+data class Success<out T, out R>(val rest: Source<T>, val result: R): ParseResult<T, R>()
 
 sealed class NoSuccess: ParseResult<Nothing, Nothing>() {
     abstract val expected: String
-    abstract fun copy(expected: String = this.expected): NoSuccess
+    abstract val location: Location<*>
+    abstract fun copy(expected: String = this.expected, location: Location<*> = this.location): NoSuccess
 }
 
 /**
@@ -30,10 +31,10 @@ sealed class NoSuccess: ParseResult<Nothing, Nothing>() {
  * @property expected string representation of what was expected here
  * @property location current source location
  */
-@Suppress("DATA_CLASS_OVERRIDE_DEFAULT_VALUES_WARNING")
-data class Failure(override val expected: String): NoSuccess()
-@Suppress("DATA_CLASS_OVERRIDE_DEFAULT_VALUES_WARNING")
-data class Error(override val expected: String): NoSuccess()
+@Suppress(Warnings.DATA_CLASS_OVERRIDE_DEFAULT_VALUES_WARNING)
+data class Failure(override val expected: String, override val location: Location<*>): NoSuccess()
+@Suppress(Warnings.DATA_CLASS_OVERRIDE_DEFAULT_VALUES_WARNING)
+data class Error(override val expected: String, override val location: Location<*>): NoSuccess()
 
 /**
  * Transform the result value using a function [f]

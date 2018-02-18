@@ -6,7 +6,7 @@ import ru.spbstu.kparsec.*
  * [lhv] followed by [rhv], combining results using [f]
  */
 data class ZipParser<T, A, B, R>(val lhv: Parser<T, A>, val rhv: Parser<T, B>, val f: (A, B) -> R): Parser<T, R> {
-    override fun invoke(input: Input<T>): ParseResult<T, R> {
+    override fun invoke(input: Source<T>): ParseResult<T, R> {
         val lr = lhv(input)
         return when(lr) {
             is Success -> {
@@ -54,7 +54,7 @@ infix fun <T, A, B> Parser<T, A>.zipTo(rhv: Parser<T, B>): Parser<T, Pair<A, B>>
 data class SeqParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, List<A>> {
     constructor(vararg elements: Parser<T, A>): this(elements.asList())
 
-    override fun invoke(input: Input<T>): ParseResult<T, List<A>> {
+    override fun invoke(input: Source<T>): ParseResult<T, List<A>> {
         val it = elements.iterator()
         if(!it.hasNext()) return Success(input, listOf())
 
@@ -95,9 +95,9 @@ fun <T, A> sequence(vararg parsers: Parser<T, A>): Parser<T, List<A>> = SeqParse
 data class ChoiceParser<T, A>(val elements: Iterable<Parser<T, A>>): Parser<T, A> {
     constructor(vararg elements: Parser<T, A>): this(elements.asList())
 
-    override fun invoke(input: Input<T>): ParseResult<T, A> {
+    override fun invoke(input: Source<T>): ParseResult<T, A> {
         val it = elements.iterator()
-        if(!it.hasNext()) return Failure("<empty choice>")
+        if(!it.hasNext()) return Failure("<empty choice>", input.location)
 
         var currentResult = it.next().invoke(input)
         for(parser in it) {
@@ -129,7 +129,7 @@ fun <T, A> oneOf(vararg parsers: Parser<T, A>): Parser<T, A> = ChoiceParser(*par
  * Parser that works the same way as [lhv], but applies [f] to result.
  */
 data class MapParser<T, A, R>(val lhv: Parser<T, A>, val f: (A) -> R): Parser<T, R> {
-    override fun invoke(input: Input<T>): ParseResult<T, R> {
+    override fun invoke(input: Source<T>): ParseResult<T, R> {
         val r = lhv(input)
         return when(r) {
             is Success -> Success(r.rest, f(r.result))
@@ -151,12 +151,12 @@ fun <T, A, R> Parser<T, A>.map(f: (A) -> R): Parser<T, R> = MapParser(this, f).a
  * Does not consume any input on failure.
  */
 data class FilterParser<T, A>(val lhv: Parser<T, A>, val p: (A) -> Boolean): Parser<T, A> {
-    override fun invoke(input: Input<T>): ParseResult<T, A> {
+    override fun invoke(input: Source<T>): ParseResult<T, A> {
         val r = lhv(input)
         return when {
             r is Success && p(r.result) -> r
             r is NoSuccess -> r
-            else -> Failure("filter")
+            else -> Failure("filter", input.location)
         }
     }
 
@@ -180,10 +180,10 @@ fun <T, A> Parser<T, A>.filter(p: (A) -> Boolean): Parser<T, A> = FilterParser(t
 data class RecursiveParser<T, A>(val f: (Parser<T, A>) -> Parser<T, A>): Parser<T, A> {
     val lz by kotlin.lazy{ f(this) }
 
-    override fun invoke(input: Input<T>): ParseResult<T, A> = lz(input)
+    override fun invoke(input: Source<T>): ParseResult<T, A> = lz(input)
 
     override val description: String
-        get() = lz.description
+        get() = "<lazy>"
 }
 
 /**
@@ -206,7 +206,7 @@ fun<T, A> recursive(f: (Parser<T, A>) -> Parser<T, A>): Parser<T, A> = Recursive
  * @see recursive
  */
 data class LazyParser<T, A>(val f: Lazy<Parser<T, A>>): Parser<T, A> {
-    override fun invoke(input: Input<T>): ParseResult<T, A> = f.value.invoke(input)
+    override fun invoke(input: Source<T>): ParseResult<T, A> = f.value.invoke(input)
     override fun toString(): String {
         return "LazyParser<?>"
     }
@@ -231,7 +231,7 @@ fun<T, A> defer(f: () -> Parser<T, A>): Parser<T, A> = LazyParser(kotlin.lazy(f)
  * Always succeeds.
  */
 data class AltParser<T, A, B: A>(val element: Parser<T, B>, val default: A): Parser<T, A> {
-    override fun invoke(input: Input<T>): ParseResult<T, A> {
+    override fun invoke(input: Source<T>): ParseResult<T, A> {
         val base = element(input)
         return when(base) {
             is Success, is Error -> base
@@ -264,7 +264,7 @@ fun <T, A> maybe(parser: Parser<T, A>): Parser<T, A?> = parser.orNot()
  * Always succeeds, **even if initialized with an empty input**.
  */
 data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, List<A>> {
-    override fun invoke(input: Input<T>): ParseResult<T, List<A>> {
+    override fun invoke(input: Source<T>): ParseResult<T, List<A>> {
         var curInput = input
         var res = element(curInput)
         val col = mutableListOf<A>()
@@ -301,7 +301,7 @@ data class LimitedManyParser<T, A>(val element: Parser<T, A>, val limit: ClosedR
         assert(limit.start >= 0)
         assert(limit.endInclusive >= 0)
     }
-    override fun invoke(input: Input<T>): ParseResult<T, List<A>> {
+    override fun invoke(input: Source<T>): ParseResult<T, List<A>> {
         var curInput = input
         var res = element(curInput)
         val col = mutableListOf<A>()
@@ -313,7 +313,7 @@ data class LimitedManyParser<T, A>(val element: Parser<T, A>, val limit: ClosedR
             res = element(curInput)
         }
 
-        if(i < limit.start) return Failure("$element * $limit")
+        if(i < limit.start) return Failure("$element * $limit", input.location)
         return Success(curInput, col)
     }
 
@@ -395,7 +395,7 @@ infix fun <T, A> Parser<T, A>.joinedBy(sep: Parser<T, (A, A) -> A>): Parser<T, A
  * Parses input using [base], feeding its results to [next] and using the results.
  */
 data class ChainParser<T, A, B>(val base: Parser<T, A>, val next: (A) -> Parser<T, B>): Parser<T, B> {
-    override fun invoke(input: Input<T>): ParseResult<T, B> {
+    override fun invoke(input: Source<T>): ParseResult<T, B> {
         val first = base(input)
         return when(first) {
             is NoSuccess -> first
@@ -422,11 +422,11 @@ fun <T, A> Parser<T, Parser<T, A>>.flatten(): Parser<T, A> = chain { it }
  * Parses input using [base], but promotes [Failure] to [Error], making it non-recoverable.
  */
 data class MustParser<T, A>(val base: Parser<T, A>): Parser<T, A> {
-    override fun invoke(input: Input<T>): ParseResult<T, A> {
+    override fun invoke(input: Source<T>): ParseResult<T, A> {
         val trye = base(input)
         return when(trye) {
             is Success, is Error -> trye
-            is Failure -> Error(trye.expected)
+            is Failure -> Error(trye.expected, input.location)
         }
     }
 

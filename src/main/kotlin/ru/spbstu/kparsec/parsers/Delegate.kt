@@ -1,8 +1,8 @@
 package ru.spbstu.kparsec.parsers
 
-import ru.spbstu.kparsec.Input
 import ru.spbstu.kparsec.ParseResult
 import ru.spbstu.kparsec.Parser
+import ru.spbstu.kparsec.Source
 
 /**
  * A parser delegating its implementation to another parser.
@@ -18,7 +18,7 @@ import ru.spbstu.kparsec.Parser
 interface DelegateParser<T, R>: Parser<T, R> {
     val self: Parser<T, R>
 
-    override fun invoke(input: Input<T>): ParseResult<T, R> = self.invoke(input)
+    override fun invoke(input: Source<T>): ParseResult<T, R> = self.invoke(input)
     override val description: String
         get() = self.description
 }

@@ -2,7 +2,7 @@ package ru.spbstu.kparsec.parsers
 
 import kotlinx.Warnings
 import ru.spbstu.kparsec.*
-import ru.spbstu.kparsec.wheels.asCharSequence
+import ru.spbstu.kparsec.wheels.escape
 
 /**
  * Internal stuff
@@ -15,7 +15,7 @@ internal inline fun<T, R> Parser<T, R>.asParser() = this
  * @see success
  */
 data class SuccessParser<T, R>(val result: R): Parser<T, R> {
-    override fun invoke(input: Input<T>): ParseResult<T, R> = Success(input, result)
+    override fun invoke(input: Source<T>): ParseResult<T, R> = Success(input, result)
     override val description: String
         get() = "success($result)"
 }
@@ -24,7 +24,7 @@ data class SuccessParser<T, R>(val result: R): Parser<T, R> {
  * [Parser] that parses nothing, always succeeds and returns nothing
  * @see SuccessParser
  */
-fun<T> empty(): Parser<T, Unit> = SuccessParser<T, Unit>(Unit).asParser()
+fun<T> empty(): Parser<T, Unit> = SuccessParser<T, Unit>(Unit) named "<>"
 /**
  * [Parser] that parses nothing, always succeeds and returns [result]
  * @see SuccessParser
@@ -36,7 +36,7 @@ fun<T, R> success(result: R): Parser<T, R> = SuccessParser<T, R>(result).asParse
  * @see fail
  */
 data class ErrorParser<T>(val error: String): Parser<T, Nothing> {
-    override fun invoke(input: Input<T>): ParseResult<T, Nothing> = Failure(error)
+    override fun invoke(input: Source<T>): ParseResult<T, Nothing> = Failure(error, input.location)
     override val description: String
         get() = "error($error)"
 }
@@ -52,11 +52,11 @@ fun<T> fail(error: String): Parser<T, Nothing> = ErrorParser<T>(error).asParser(
  * @see named
  */
 data class NamedParser<T, R>(val name: String, val inner: Parser<T, R>): Parser<T, R> {
-    override fun invoke(input: Input<T>): ParseResult<T, R> {
+    override fun invoke(input: Source<T>): ParseResult<T, R> {
         val parse = inner(input)
         return when(parse) {
             is Success -> parse
-            is NoSuccess -> parse.copy(expected = name)
+            is NoSuccess -> parse /*.copy(expected = name)*/
         }
     }
 
@@ -75,15 +75,15 @@ infix fun<T, R> Parser<T, R>.named(name: String): Parser<T, R> = NamedParser(nam
  * @see constant
  */
 data class ConstantParser(val c: String): Parser<Char, String> {
-    override fun invoke(input: Input<Char>): ParseResult<Char, String> {
+    override fun invoke(input: Source<Char>): ParseResult<Char, String> {
         return when {
             input.asCharSequence().startsWith(c) -> Success(input.drop(c.length), c)
-            else -> Failure("\"$c\"")
+            else -> Failure("\"${c.escape()}\"", input.location)
         }
     }
 
     override val description: String
-        get() = "\"$c\""
+        get() = "\"${c.escape()}\""
 }
 
 /**
@@ -97,11 +97,11 @@ fun constant(c: String): Parser<Char, String> = ConstantParser(c).asParser()
  * @see regex
  */
 data class RegexParser(val r: Regex): Parser<Char, String> {
-    override fun invoke(input: Input<Char>): ParseResult<Char, String> {
+    override fun invoke(input: Source<Char>): ParseResult<Char, String> {
         val mtcher = r.toPattern().matcher(input.asCharSequence())
         return when {
             mtcher.lookingAt() -> Success(input.drop(mtcher.end()), mtcher.group())
-            else -> Failure("regex $r")
+            else -> Failure("regex $r", input.location)
         }
     }
 
@@ -127,11 +127,11 @@ fun regex(re: Regex): Parser<Char, String> = RegexParser(re).asParser()
  * @see char
  */
 data class TokenParser<T>(val testDescription: String, val test: (T) -> Boolean): Parser<T, T> {
-    override fun invoke(input: Input<T>) = run {
+    override fun invoke(input: Source<T>) = run {
         val first = input.currentOrNull()
         when {
             first != null && test(first) -> Success(input.next(), first)
-            else -> Failure(testDescription)
+            else -> Failure(testDescription, input.location)
         }
     }
 
@@ -192,9 +192,9 @@ fun<T> oneOf(vararg ch: T) = oneOf(ch.asList()).asParser()
  * The end of input. Succeeds if there is no input left.
  */
 class EofParser<T>: Parser<T, Unit> {
-    override fun invoke(input: Input<T>) = when {
+    override fun invoke(input: Source<T>) = when {
         input.isEmpty() -> Success(input, Unit)
-        else -> Failure("<EOF>")
+        else -> Failure("<EOF>", input.location)
     }
 
     override val description: String

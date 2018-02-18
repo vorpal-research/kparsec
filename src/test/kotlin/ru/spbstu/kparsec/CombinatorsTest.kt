@@ -118,7 +118,7 @@ class CombinatorsTest {
     @Test
     fun `recursive parser sanity check`() {
         val p: Parser<Char, Char> = recursive { rep ->
-            (-lexeme('[') + rep + -lexeme(']')) or lexeme('$')
+            (-lexeme('[') + lexeme(rep) + -lexeme(']')) or lexeme('$')
         }
 
         assertEquals('$', p.parse("$").assertResult())

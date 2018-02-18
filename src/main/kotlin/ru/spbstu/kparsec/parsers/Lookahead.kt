@@ -6,7 +6,7 @@ import ru.spbstu.kparsec.*
  * Parses input using [base], but does not consume anything.
  */
 data class LookaheadParser<T, A>(val base: Parser<T, A>): Parser<T, A> {
-    override fun invoke(input: Input<T>): ParseResult<T, A> {
+    override fun invoke(input: Source<T>): ParseResult<T, A> {
         val first = base(input)
         return when(first) {
             is NoSuccess -> first
@@ -30,11 +30,11 @@ infix fun <T, A, B> Parser<T, A>.followedBy(other: Parser<T, B>) = this + -looka
  * Never consumes any input
  */
 data class NotParser<T>(val base: Parser<T, Any?>): Parser<T, Unit> {
-    override fun invoke(input: Input<T>): ParseResult<T, Unit> {
+    override fun invoke(input: Source<T>): ParseResult<T, Unit> {
         val first = base(input)
         return when(first) {
             is Failure -> Success(input, Unit)
-            is Success -> Failure("not($base)")
+            is Success -> Failure("not($base)", input.location)
             is Error -> first
         }
     }
