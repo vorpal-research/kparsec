@@ -285,11 +285,15 @@ data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, List<A>> {
  * Always succeeds, **even if initialized with an empty input**.
  */
 fun <T, A> Parser<T, A>.many(): Parser<T, List<A>> = ManyParser(this).asParser()
+@JvmName("prefix many")
+fun <T, A> many(parser: Parser<T, A>): Parser<T, List<A>> = ManyParser(parser).asParser()
 /**
  * [Parser] that expects one or more occurencies of [element], stopping when [element] fails.
  * Fails if the first invocation of [element] fails.
  */
 fun <T, A> Parser<T, A>.manyOne(): Parser<T, List<A>> = this + ManyParser(this).asParser()
+@JvmName("prefix manyOne")
+fun <T, A> manyOne(parser: Parser<T, A>): Parser<T, List<A>> = ManyParser(parser).asParser()
 
 /**
  * [Parser] that expects [element] exactly N times, where N is in range [limit].
@@ -412,11 +416,37 @@ data class ChainParser<T, A, B>(val base: Parser<T, A>, val next: (A) -> Parser<
  */
 infix fun <T, A, B> Parser<T, A>.chain(next: (A) -> Parser<T, B>): Parser<T, B>
         = ChainParser(this, next).asParser()
-
 /**
  * Apply [this] and then apply the result
  */
 fun <T, A> Parser<T, Parser<T, A>>.flatten(): Parser<T, A> = chain { it }
+
+/**
+ * Parses input using [base], feeding its results to several other parsers. If any of those fails,
+ * everything fails. If all of them succeed, return the result of [base]
+ */
+data class MultiParser<T, A>(val base: Parser<T, A>, val aux: List<Parser<T, *>>): Parser<T, A> {
+    override fun invoke(input: Source<T>): ParseResult<T, A> {
+        val first = base(input)
+        if(first is NoSuccess) return first
+
+        for(parser in aux) {
+            val res = parser(input)
+            when(res) {
+                is NoSuccess -> return res
+            }
+        }
+        return first
+    }
+
+    override val description: String
+        get() = "multi(${base.description}, ${aux.joinToString{ it.description }})"
+}
+
+fun <T, A> multi(base: Parser<T, A>, vararg others: Parser<T, *>) =
+        MultiParser(base, others.asList()).asParser()
+fun <T, A> multi(base: Parser<T, A>, others: List<Parser<T, *>>) =
+        MultiParser(base, others).asParser()
 
 /**
  * Parses input using [base], but promotes [Failure] to [Error], making it non-recoverable.

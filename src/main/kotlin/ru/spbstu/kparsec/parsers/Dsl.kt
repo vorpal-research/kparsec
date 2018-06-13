@@ -39,6 +39,9 @@ operator fun <T, A> Parser<T, A>.times(value: Int): Parser<T, List<A>> =
 operator fun <T, A> Parser<T, A>.times(range: ClosedRange<Int>): Parser<T, List<A>> =
         LimitedManyParser(this, range).asParser()
 
+@JvmName("(operator)not")
+operator fun <T, A> Parser<T, A>.not(): Parser<T, Unit> = NotParser(this)
+
 object NonTerminal
 interface GrammarContext<T> {
     fun<R> get(name: String): Parser<T, R>

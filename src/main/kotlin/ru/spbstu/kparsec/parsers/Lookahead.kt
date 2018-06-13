@@ -47,4 +47,10 @@ data class NotParser<T>(val base: Parser<T, Any?>): Parser<T, Unit> {
  * Be cautious when using this!
  */
 fun <T, A> not(base: Parser<T, A>): Parser<T, Unit> = NotParser(base)
+
 infix fun <T, A, B> Parser<T, A>.notFollowedBy(other: Parser<T, B>) = this + not(other)
+
+fun <T, A, B> Parser<T, A>.excluding(vararg others: Parser<T, B>) =
+        multi(this, others.asList().map { not(it) })
+infix fun <T, A, B> Parser<T, A>.excluding(other: Parser<T, B>) =
+        multi(this, not(other))
