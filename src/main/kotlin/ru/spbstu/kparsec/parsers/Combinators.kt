@@ -1,6 +1,7 @@
 package ru.spbstu.kparsec.parsers
 
 import ru.spbstu.kparsec.*
+import java.lang.IllegalStateException
 
 /**
  * [lhv] followed by [rhv], combining results using [f]
@@ -269,6 +270,12 @@ data class ManyParser<T, A>(val element: Parser<T, A>): Parser<T, List<A>> {
         var res = element(curInput)
         val col = mutableListOf<A>()
         while(res is Success) {
+            if(res.rest.location == curInput.location) {
+                return Error(
+                        "many() parser cannot be used with parser that does not consume input: $description",
+                        curInput.location
+                )
+            }
             col += res.result
             curInput = res.rest
             res = element(curInput)
@@ -293,7 +300,7 @@ fun <T, A> many(parser: Parser<T, A>): Parser<T, List<A>> = ManyParser(parser).a
  */
 fun <T, A> Parser<T, A>.manyOne(): Parser<T, List<A>> = this + ManyParser(this).asParser()
 @JvmName("prefix manyOne")
-fun <T, A> manyOne(parser: Parser<T, A>): Parser<T, List<A>> = ManyParser(parser).asParser()
+fun <T, A> manyOne(parser: Parser<T, A>): Parser<T, List<A>> = parser + ManyParser(parser).asParser()
 
 /**
  * [Parser] that expects [element] exactly N times, where N is in range [limit].
