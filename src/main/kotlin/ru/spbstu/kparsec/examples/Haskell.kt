@@ -182,9 +182,9 @@ object HaskellLexer : StringsAsParsers {
     val qvarsym by lazyToken { many(modid + char('.')) + varsym }
     val qconsym by lazyToken { many(modid + char('.')) + consym }
 
-    val decimal = manyOne(digit).map { it.joinToString("").toInt(10) }
-    val octal = manyOne(octit).map { it.joinToString("").toInt(8) }
-    val hexadecimal = manyOne(hexit).map { it.joinToString("").toInt(16) }
+    val decimal = manyOne(digit).map { it.joinToString("") }
+    val octal = manyOne(octit).map { it.joinToString("") }
+    val hexadecimal = manyOne(hexit).map { it.joinToString("") }
 
     val integer by lazyToken {
         decimal or (constant("0o") + octal) or (constant("0O") + octal) or
