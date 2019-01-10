@@ -1,10 +1,11 @@
-package ru.spbstu.kparsec.examples
+package ru.spbstu.kparsec.examples.haskell
 
+import ru.spbstu.kparsec.CharLocation
 import ru.spbstu.kparsec.Parser
 import ru.spbstu.kparsec.parsers.*
 import kotlin.reflect.KProperty
 
-data class Token(val type: String, val value: Any?) {
+data class Token(val type: String, val value: Any?, val location: Pair<CharLocation, CharLocation>) {
     override fun toString(): String = when(value) {
         is Unit -> type
         is Collection<*> -> "$type(${value.joinToString()})"
@@ -14,7 +15,11 @@ data class Token(val type: String, val value: Any?) {
 
 object HaskellLexer : StringsAsParsers {
     internal fun Parser<Char, String>.asTokenParser(type: String) =
-            map { Token(type, it.replace(" ", "\\w".replace("\n", "\\n".replace("\t", "\\t")))) }
+            withLocation  { before, result, after ->
+                before as CharLocation
+                after as CharLocation
+                Token(type, result.replace(" ", "\\w".replace("\n", "\\n".replace("\t", "\\t"))), before to after)
+            }
 
     object LazyTokenTombstone
     private inline fun <T> lazyToken(noinline body: () -> Parser<Char, T>) = object {
@@ -41,8 +46,8 @@ object HaskellLexer : StringsAsParsers {
         return inp.map(::mapper)
     }
 
-    val program by lazy {
-        lexema joinedBy spaces
+    val program: Parser<Char, List<Token>> by lazy {
+        spaces + many(lexema + spaces).map { it.flatten() }
     }
     val lexema by lazy {
         reservedop or reservedid or special or qvarid or qconid or qvarsym or qconsym or literal
@@ -66,7 +71,7 @@ object HaskellLexer : StringsAsParsers {
     }
 
     val comment by lazyToken {
-        dashes + anyChar().many() + newline
+        dashes + (anyChar() excluding newline).many() + newline
     }
     val dashes by lazy {
         -constant("--") + -char('-').many()
@@ -74,8 +79,8 @@ object HaskellLexer : StringsAsParsers {
     val opencom = -constant("{-")
     val closecom = -constant("-}")
 
-    val ncomment: Parser<Char, Any> by lazyToken {
-        opencom + ANYseq + (defer { ncomment } + ANYseq).many() + closecom
+    val ncomment: Parser<Char, Token> by lazyToken {
+        opencom + (defer { ncomment } or (ANY excluding closecom)).many() + closecom
     }
     val ANYseq by lazy {
         ANY.many() excluding  (opencom + ANY.many() + closecom)

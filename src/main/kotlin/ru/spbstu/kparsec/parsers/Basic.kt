@@ -205,3 +205,30 @@ class EofParser<T>: Parser<T, Unit> {
  * The end of input. Succeeds if there is no input left.
  */
 fun <T> eof(): Parser<T, Unit> = EofParser<T>().asParser()
+
+/**
+ * [Parser] that does nothing, but returns current location in the input
+ */
+class LocationParser<T>: Parser<T, Location<T>> {
+    override fun invoke(input: Source<T>): ParseResult<T, Location<T>> =
+            Success(input, input.location)
+
+    override val description: String
+        get() = "<location>"
+}
+
+/**
+ * [Parser] that does nothing, but returns current location in the input
+ */
+fun <T> location(): Parser<T, Location<T>> = LocationParser<T>().asParser()
+
+/**
+ * [Parser] that works the same as [this], but also returns current location before and after the parse
+ */
+fun <T, R> Parser<T, R>.withLocation(): Parser<T, Triple<Location<T>, R, Location<T>>> =
+        zip(location(), this, location()).asParser()
+/**
+ * [Parser] that works the same as [this], but also returns current location before and after the parse
+ */
+fun <T, R, RR> Parser<T, R>.withLocation(body: (Location<T>, R, Location<T>) -> RR): Parser<T, RR> =
+        zip(location(), this, location(), body)
