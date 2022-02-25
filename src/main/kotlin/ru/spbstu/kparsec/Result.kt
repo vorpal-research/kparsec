@@ -61,7 +61,7 @@ class Error(override val expected: String, override val location: Location<*>): 
 
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
-        other !is Failure -> false
+        other !is Error -> false
         expected != other.expected -> false
         location != other.location -> false
         else -> true
