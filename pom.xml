@@ -11,7 +11,7 @@
     <properties>
         <java.version>1.8</java.version>
         <kotlin.version>1.6.0</kotlin.version>
-        <dokka.version>0.9.17</dokka.version>
+        <dokka.version>1.6.10</dokka.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -76,18 +76,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <sourceLinks>
-                        <link>
-                            <!-- Source directory -->
-                            <dir>${project.basedir}/src/main/kotlin</dir>
-                            <!-- URL showing where the source code can be accessed through the web browser -->
-                            <url>http://github.com/belyaev-mikhail/kparsec</url>
-                            <!--Suffix which is used to append the line number to the URL. Use #L for GitHub -->
-                            <urlSuffix>#L</urlSuffix>
-                        </link>
-                    </sourceLinks>
-                </configuration>
             </plugin>
 
             <plugin>
