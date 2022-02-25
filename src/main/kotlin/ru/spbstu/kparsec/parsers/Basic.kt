@@ -1,6 +1,6 @@
 package ru.spbstu.kparsec.parsers
 
-import kotlinx.Warnings
+import kotlinx.warnings.Warnings
 import ru.spbstu.kparsec.*
 import ru.spbstu.kparsec.wheels.escape
 

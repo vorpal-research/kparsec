@@ -10,18 +10,13 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <kotlin.version>1.2.41</kotlin.version>
+        <kotlin.version>1.6.0</kotlin.version>
         <dokka.version>0.9.17</dokka.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-runtime</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
@@ -41,8 +36,8 @@
         </dependency>
         <dependency>
             <groupId>ru.spbstu</groupId>
-            <artifactId>kotlinx-warnings</artifactId>
-            <version>1.2.0</version>
+            <artifactId>kotlinx-warnings-jvm</artifactId>
+            <version>${kotlin.version}</version>
         </dependency>
     </dependencies>
 
@@ -150,16 +145,22 @@
 
     <repositories>
         <repository>
-            <id>bintray-vorpal-research-kotlin-maven</id>
-            <url>http://dl.bintray.com/vorpal-research/kotlin-maven</url>
+            <id>maven-central-to-force-ordering</id>
+            <name>maven-central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>github-vorpal-research-kotlin-maven</id>
+            <name>vorpal-research-kotlin-maven</name>
+            <url>https://maven.vorpal-research.science</url>
         </repository>
     </repositories>
 
     <distributionManagement>
         <repository>
-            <id>bintray-vorpal-research-kotlin-maven</id>
+            <id>github-vorpal-research-kotlin-maven</id>
             <name>vorpal-research-kotlin-maven</name>
-            <url>https://api.bintray.com/maven/vorpal-research/kotlin-maven/${project.artifactId}/;publish=1</url>
+            <url>https://maven.pkg.github.com/vorpal-research/kotlin-maven</url>
         </repository>
     </distributionManagement>
 

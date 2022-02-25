@@ -3,6 +3,7 @@ package ru.spbstu.kparsec.examples.haskell
 import ru.spbstu.kparsec.CharLocation
 import ru.spbstu.kparsec.Parser
 import ru.spbstu.kparsec.parsers.*
+import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 data class Token(val type: String, val value: Any?, val location: Pair<CharLocation, CharLocation>) {
@@ -22,9 +23,9 @@ object HaskellLexer : StringsAsParsers {
             }
 
     object LazyTokenTombstone
-    private inline fun <T> lazyToken(noinline body: () -> Parser<Char, T>) = object {
+    private inline fun <T> lazyToken(noinline body: () -> Parser<Char, T>) = object : ReadOnlyProperty<Any?, Parser<Char, Token>> {
         var lazy: Any? = LazyTokenTombstone
-        operator fun getValue(thisRef: Any?, prop: KProperty<*>): Parser<Char, Token> {
+        override operator fun getValue(thisRef: Any?, prop: KProperty<*>): Parser<Char, Token> {
             when(lazy) {
                 LazyTokenTombstone -> {
                     return string(body()).asTokenParser(prop.name).also { lazy = it }
